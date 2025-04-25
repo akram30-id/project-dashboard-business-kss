@@ -94,5 +94,5 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
 
     <!-- Dashboard Scripts -->
-    <script src="{{ asset('js/dashboard.js') }}"></script>
+    {{-- <script src="{{ asset('js/dashboard.js') }}"></script> --}}
 @endsection
