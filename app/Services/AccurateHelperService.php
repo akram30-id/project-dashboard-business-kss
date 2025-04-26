@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class AccurateHelperService
 {
@@ -20,7 +21,7 @@ class AccurateHelperService
         //
     }
 
-    function ouath2Authorization(string $scope): RedirectResponse
+    function ouath2Authorization(string $scope)//: RedirectResponse
     {
         $urlAuth = config('accurate.auth_url');
         $clientId = config('accurate.client_id');
@@ -40,20 +41,28 @@ class AccurateHelperService
         $urlToken = config('accurate.token_url');
 
         if (empty($refreshToken)) { // jika bukan get refresh token
-            $accessToken = Http::asForm()->withHeaders([
-                'Authorization' => $sign
-            ])->post($urlToken, [
+            $data = [
                 'code' => $authorizationCode,
                 'grant_type' => 'authorization_code',
                 'redirect_uri' => config('accurate.callback_uri')
-            ]);
-        } else { // jika get refresh token
-            $accessToken = Http::withHeaders([
+            ];
+
+            $accessToken = Http::asForm()->withHeaders([
                 'Authorization' => $sign
-            ])->post($urlToken, [
+            ])->post($urlToken, $data);
+
+            Log::debug('GET ACCESS TOKEN : ', ['url' => $urlToken, 'data' => $data]);
+        } else { // jika get refresh token
+            $data = [
                 'grant_type' => 'refresh_token',
                 'refresh_token' => $refreshToken
-            ]);
+            ];
+
+            $accessToken = Http::withHeaders([
+                'Authorization' => $sign
+            ])->post($urlToken, $data);
+
+            Log::debug('GET REFRESH TOKEN : ', ['url' => $urlToken, 'data' => $data]);
         }
 
         if ($accessToken->successful()) {
@@ -62,6 +71,7 @@ class AccurateHelperService
             $saveToken = $this->saveToken($response);
 
             if (isset($saveToken['error'])) {
+                Log::debug('[FAIL] GET ACCESS TOKEN : ', ['error' => $saveToken['error']]);
                 return false;
             }
 
@@ -70,18 +80,20 @@ class AccurateHelperService
             $getDBSession = $this->getDBSession($saveToken['access_token']);
 
             if (isset($getDBSession['error'])) {
+                Log::debug('[FAIL] GET DB SESSION : ', ['url' => $urlToken, 'data' => $data]);
                 return ['error' => $getDBSession['error']];
             }
 
             return $saveToken;
         } else {
+            Log::debug('[FAIL] GET ACCESS TOKEN : ', ['error' => $accessToken->body()]);
             return ['error' => $accessToken->body()];
         }
     }
 
     function saveToken(array $responseToken)
     {
-        $userSession = $responseToken['user']['email'];
+        $userSession = session('email');
 
         session(['accurate_user' => $userSession]);
 
@@ -117,7 +129,7 @@ class AccurateHelperService
     {
         DB::beginTransaction();
 
-        $userSession = $responseToken['user']['email'];
+        $userSession = session('email');
 
         $expired = Carbon::createFromTimestamp(time())->addDays(14)->timestamp;
         $accessToken = new AccurateToken();
