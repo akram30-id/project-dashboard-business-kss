@@ -98,8 +98,8 @@ class AccurateHelperService
         session(['accurate_user' => $userSession]);
 
         $accurateToken = AccurateToken::where('access_token', $responseToken['access_token'])
-            ->where('user_request', $userSession)
-            ->first();
+                                        ->orderBy('expired_at', 'DESC')
+                                        ->first();
 
         if (empty($accurateToken)) { // kalo usernya baru generate token
 
@@ -154,10 +154,7 @@ class AccurateHelperService
 
     function isAccessTokenExist(): array
     {
-        $user = session('email');
-        $getAccessToken = AccurateToken::where('user_request', $user)
-                                ->orderBy('expired_at', 'DESC')
-                                ->first();
+        $getAccessToken = AccurateToken::orderBy('expired_at', 'DESC')->first();
 
         if (empty($getAccessToken)) {
             return [];
@@ -199,20 +196,19 @@ class AccurateHelperService
      */
     function getDBSession(string $accessToken): array
     {
-        $user = session('accurate_user');
+        $user = session('email');
 
-        $getSessionFromDB = AccurateSession::where('user_request', $user)
-                            ->where('access_token', $accessToken)
-                            ->first();
+        $getSessionFromDB = AccurateSession::where('access_token', $accessToken)
+                                            ->orderBy('id', 'DESC')
+                                            ->first();
 
         // cek apakah session nya masih ada di db
         if (empty($getSessionFromDB)) { // jika sessionnya ga ada di db
             $hitAPI = $this->apiAccurateDBSession($accessToken); // ambil session dari API accurate
 
             if (isset($hitAPI['error'])) {
-                echo '<pre>';
-                print_r($hitAPI);
-                die();
+                Log::debug('[FAIL] GET ACCURATE DB SESSION', $hitAPI);
+                return ['error' => $hitAPI];
             }
 
             session(['accurate_session' => $hitAPI['session']]);

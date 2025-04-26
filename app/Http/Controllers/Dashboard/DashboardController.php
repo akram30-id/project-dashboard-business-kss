@@ -38,7 +38,7 @@ class DashboardController extends Controller
         $getDBSession = $helper->getDBSession($accessToken);
 
         if (isset($getDBSession['error'])) {
-            echo '<h2>' . $getDBSession['error'] . '</h2>';
+            view('error', ['message' => 'ERROR WHEN CONNECTING TO ACCURATE DB SESSION']);
             die();
         }
 
