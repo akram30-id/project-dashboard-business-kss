@@ -154,8 +154,7 @@ class AccurateHelperService
 
     function isAccessTokenExist(): array
     {
-        $user = Auth::user();
-        $user = $user->email;
+        $user = session('email');
         $getAccessToken = AccurateToken::where('user_request', $user)
                                 ->orderBy('expired_at', 'DESC')
                                 ->first();
