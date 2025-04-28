@@ -9,6 +9,7 @@ use App\Services\AccurateHelperService;
 use App\Services\AccurateInvoice;
 use App\Services\AccurateRevenue;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
@@ -22,6 +23,10 @@ class DashboardController extends Controller
         // echo 'dashboard';
         // die();
 
+        if (empty(Auth::user()->email)) {
+            return redirect()->to('/login');
+        }
+
         $helper = new AccurateHelperService();
         $invoiceService = new AccurateInvoice();
         $revenueService = new AccurateRevenue();
@@ -31,6 +36,11 @@ class DashboardController extends Controller
         if (empty($isTokenExist)) { // jika belum pernah generate access token sama sekali
             $scope = config('accurate.scope');
             return $helper->ouath2Authorization($scope);
+        }
+
+        if (isset($isTokenExist['error'])) {
+            view('error', ['message' => $isTokenExist['error']]);
+            die();
         }
 
         $accessToken = $isTokenExist['access_token'];

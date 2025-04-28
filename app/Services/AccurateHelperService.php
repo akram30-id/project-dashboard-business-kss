@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
+use function PHPUnit\Framework\isArray;
+
 class AccurateHelperService
 {
     /**
@@ -21,7 +23,7 @@ class AccurateHelperService
         //
     }
 
-    function ouath2Authorization(string $scope)//: RedirectResponse
+    function ouath2Authorization(string $scope) //: RedirectResponse
     {
         $urlAuth = config('accurate.auth_url');
         $clientId = config('accurate.client_id');
@@ -53,16 +55,7 @@ class AccurateHelperService
 
             Log::debug('GET ACCESS TOKEN : ', ['url' => $urlToken, 'data' => $data]);
         } else { // jika get refresh token
-            $data = [
-                'grant_type' => 'refresh_token',
-                'refresh_token' => $refreshToken
-            ];
-
-            $accessToken = Http::withHeaders([
-                'Authorization' => $sign
-            ])->post($urlToken, $data);
-
-            Log::debug('GET REFRESH TOKEN : ', ['url' => $urlToken, 'data' => $data]);
+            $accessToken = $this->refreshToken($urlToken, $refreshToken, $sign);
         }
 
         if ($accessToken->successful()) {
@@ -91,6 +84,29 @@ class AccurateHelperService
         }
     }
 
+    function refreshToken(string $refreshToken)
+    {
+        $clientId = config('accurate.client_id');
+        $clientSecret = config('accurate.client_secret');
+
+        $sign = 'Basic ' . base64_encode($clientId . ':' . $clientSecret);
+
+        $urlToken = config('accurate.token_url');
+
+        $data = [
+            'grant_type' => 'refresh_token',
+            'refresh_token' => $refreshToken
+        ];
+
+        $hitRefreshAPI = Http::asForm()->withHeaders([
+            'Authorization' => $sign
+        ])->post($urlToken, $data);
+
+        Log::debug('GET REFRESH TOKEN : ', ['url' => $urlToken, 'data' => $data]);
+
+        return $hitRefreshAPI;
+    }
+
     function saveToken(array $responseToken)
     {
         $userSession = session('email');
@@ -98,8 +114,8 @@ class AccurateHelperService
         session(['accurate_user' => $userSession]);
 
         $accurateToken = AccurateToken::where('access_token', $responseToken['access_token'])
-                                        ->orderBy('expired_at', 'DESC')
-                                        ->first();
+            ->orderBy('expired_at', 'DESC')
+            ->first();
 
         if (empty($accurateToken)) { // kalo usernya baru generate token
 
@@ -131,7 +147,7 @@ class AccurateHelperService
 
         $userSession = session('email');
 
-        $expired = Carbon::createFromTimestamp(time())->addDays(14)->timestamp;
+        $expired = Carbon::createFromTimestamp(time())->addMinutes(1)->timestamp;
         $accessToken = new AccurateToken();
         $accessToken->access_token = $responseToken['access_token'];
         $accessToken->refresh_token = $responseToken['refresh_token'];
@@ -158,6 +174,14 @@ class AccurateHelperService
 
         if (empty($getAccessToken)) {
             return [];
+        }
+
+        if (time() >= $getAccessToken->expired_at) { // jika tokennya expired
+            return [];
+        }
+
+        if (is_array($getAccessToken)) {
+            return $getAccessToken;
         }
 
         return $getAccessToken->toArray();
@@ -199,8 +223,8 @@ class AccurateHelperService
         $user = session('email');
 
         $getSessionFromDB = AccurateSession::where('access_token', $accessToken)
-                                            ->orderBy('id', 'DESC')
-                                            ->first();
+            ->orderBy('id', 'DESC')
+            ->first();
 
         // cek apakah session nya masih ada di db
         if (empty($getSessionFromDB)) { // jika sessionnya ga ada di db
