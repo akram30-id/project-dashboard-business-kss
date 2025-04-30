@@ -17,7 +17,7 @@
                 <!-- End of Topbar -->
 
                 <!-- Begin Page Content -->
-                <div class="container-fluid">
+                <div class="container">
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <nav aria-label="breadcrumb">
@@ -31,39 +31,43 @@
                     </div>
 
                     <!-- Yearly Dashboard -->
-                    <div class="dashboard-container">
-                        <div class="row">
-                            <!-- Stats Cards for Current Year -->
-                            <div id="stats-cards-container" class="row">
-                                @include('components.dashboard.stats-card', [
-                                    'type' => 'primary',
-                                    'id' => 'revenue-total',
-                                    'value' => 'Rp ' . number_format($totalRevenue, 0, ',', '.'),
-                                    'label' => 'Total Revenue',
-                                    'icon' => 'fas fa-money-bill-wave',
-                                    'chartIcon' => 'fas fa-chart-line',
-                                    'year' => '2025'
-                                ])
+                    <div class="container">
+                        <div class="card border-0">
+                            <div class="card-body">
+                                <div class="row">
+                                    <!-- Stats Cards for Current Year -->
+                                    <div id="stats-cards-container" class="d-flex justify-content-between w-100">
+                                        @include('components.dashboard.stats-card', [
+                                            'type' => 'primary',
+                                            'id' => 'revenue-total',
+                                            'value' => 'Rp ' . number_format($totalRevenue, 0, ',', '.'),
+                                            'label' => 'Total Revenue',
+                                            'icon' => 'fas fa-money-bill-wave',
+                                            'chartIcon' => 'fas fa-chart-line',
+                                            'year' => '2025'
+                                        ])
 
-                                @include('components.dashboard.stats-card', [
-                                    'type' => 'success',
-                                    'id' => 'invoice-total',
-                                    'value' => 'Rp ' . number_format($totalInvoice, 0, ',', '.'),
-                                    'label' => 'Total Invoice',
-                                    'icon' => 'fas fa-file-invoice',
-                                    'chartIcon' => 'fas fa-file-invoice-dollar',
-                                    'year' => '2025'
-                                ])
+                                        @include('components.dashboard.stats-card', [
+                                            'type' => 'success',
+                                            'id' => 'invoice-total',
+                                            'value' => 'Rp ' . number_format($totalInvoice, 0, ',', '.'),
+                                            'label' => 'Total Invoice',
+                                            'icon' => 'fas fa-file-invoice',
+                                            'chartIcon' => 'fas fa-file-invoice-dollar',
+                                            'year' => '2025'
+                                        ])
 
-                                @include('components.dashboard.stats-card', [
-                                    'type' => 'info',
-                                    'id' => 'accrue-total',
-                                    'value' => 'Rp ' . number_format($totalAccrue, 0, ',', '.'),
-                                    'label' => 'Total Accrue',
-                                    'icon' => 'fas fa-chart-pie',
-                                    'chartIcon' => 'fas fa-calculator',
-                                    'year' => '2025'
-                                ])
+                                        @include('components.dashboard.stats-card', [
+                                            'type' => 'info',
+                                            'id' => 'accrue-total',
+                                            'value' => 'Rp ' . number_format($totalAccrue, 0, ',', '.'),
+                                            'label' => 'Total Accrue',
+                                            'icon' => 'fas fa-chart-pie',
+                                            'chartIcon' => 'fas fa-calculator',
+                                            'year' => '2025'
+                                        ])
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
