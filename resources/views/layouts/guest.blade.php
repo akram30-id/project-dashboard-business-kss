@@ -20,13 +20,10 @@
 
    <!-- Custom styles for this template-->
    <link href="{{ asset('') }}assets/css/sb-admin-2.min.css" rel="stylesheet">
-
-    <!-- Scripts -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
 <body class="bg-gradient-primary">
-    
+
     {{-- backupp laravel --}}
     {{-- <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100 dark:bg-gray-900">
         <div class="d-flex flex-column align-items-center text-center">
@@ -49,10 +46,10 @@
      <!-- Bootstrap core JavaScript-->
      <script src="{{ asset('') }}assets/vendor/jquery/jquery.min.js"></script>
      <script src="{{ asset('') }}assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
- 
+
      <!-- Core plugin JavaScript-->
      <script src="{{ asset('') }}assets/vendor/jquery-easing/jquery.easing.min.js"></script>
- 
+
      <!-- Custom scripts for all pages-->
      <script src="{{ asset('') }}assets/js/sb-admin-2.min.js"></script>
 </body>
