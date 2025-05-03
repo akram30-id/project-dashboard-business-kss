@@ -40,31 +40,31 @@
                                         @include('components.dashboard.stats-card', [
                                             'type' => 'primary',
                                             'id' => 'revenue-total',
-                                            'value' => 'Rp ' . number_format($totalRevenue, 0, ',', '.'),
+                                            'value' => 'Loading . . .',
                                             'label' => 'Total Revenue',
                                             'icon' => 'fas fa-money-bill-wave',
                                             'chartIcon' => 'fas fa-chart-line',
-                                            'year' => '2025'
+                                            'year' => '2025',
                                         ])
 
                                         @include('components.dashboard.stats-card', [
                                             'type' => 'success',
                                             'id' => 'invoice-total',
-                                            'value' => 'Rp ' . number_format($totalInvoice, 0, ',', '.'),
+                                            'value' => 'Loading . . .',
                                             'label' => 'Total Invoice',
                                             'icon' => 'fas fa-file-invoice',
                                             'chartIcon' => 'fas fa-file-invoice-dollar',
-                                            'year' => '2025'
+                                            'year' => '2025',
                                         ])
 
                                         @include('components.dashboard.stats-card', [
                                             'type' => 'info',
                                             'id' => 'accrue-total',
-                                            'value' => 'Rp ' . number_format($totalAccrue, 0, ',', '.'),
+                                            'value' => 'Loading . . .',
                                             'label' => 'Total Accrue',
                                             'icon' => 'fas fa-chart-pie',
                                             'chartIcon' => 'fas fa-calculator',
-                                            'year' => '2025'
+                                            'year' => '2025',
                                         ])
                                     </div>
                                 </div>
@@ -97,6 +97,5 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
 
-    <!-- Dashboard Scripts -->
-    <script src="{{ asset('js/dashboard.js') }}"></script>
+    @include('pages.js.client')
 @endsection

@@ -16,10 +16,13 @@ class AccurateRevenue
     }
 
 
-    function getTotalRevenue(string $host, string $accessToken, string $dbSession, bool $isAnnual = true, int $page = 1, int $totalPage = null, int $totalInvoice = 0): int
+    function getTotalRevenue(string $host, string $accessToken, string $dbSession, bool $isAnnual = true, int $page = 1, int $totalPage = null, int $totalInvoice = 0, $year = null): int
     {
         $periode = [];
-        $year = date('Y');
+
+        if ($year == null) {
+            $year = date('Y');
+        }
 
         if ($isAnnual == true) {
             $periode['start_month'] = 1;
@@ -75,7 +78,7 @@ class AccurateRevenue
 
         // Jika masih ada halaman berikutnya, panggil lagi fungsi ini
         if ($page < $totalPage) {
-            return $this->getTotalRevenue($host, $accessToken, $dbSession, $isAnnual, $page + 1, $totalPage, $totalInvoice);
+            return $this->getTotalRevenue($host, $accessToken, $dbSession, $isAnnual, $page + 1, $totalPage, $totalInvoice, $year);
         }
 
         return $totalInvoice;

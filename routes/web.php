@@ -17,10 +17,15 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/dashboard/{menu}', [DashboardController::class, 'show'])->name('dashboard.show');
-    Route::get('/report', [ReportController::class, 'index'])->name('report');
+    Route::prefix('dashboard')->group(function () {
+        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/{menu}', [DashboardController::class, 'show'])->name('dashboard.show');
+    });
 
+    Route::prefix('report')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])->name('report');
+        Route::get('/annual_invoice/{year}', [ReportController::class, 'invoiceListAnnual'])->name('report.annual_invoice');
+    });
 });
 
 Route::get('/accurate/callback', [CallbackController::class, 'authorization']);

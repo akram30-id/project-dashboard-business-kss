@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'base_url' => env('APP_URL'),
     'auth_url' => env('ACCURATE_AUTH_URL'),
     'client_id' => env('ACCURATE_CLIENT_ID'),
     'client_secret' => env('ACCURATE_CLIENT_SECRET'),

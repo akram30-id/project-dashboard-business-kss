@@ -8,8 +8,12 @@ use App\Models\Menu;
 use App\Services\AccurateHelperService;
 use App\Services\AccurateInvoice;
 use App\Services\AccurateRevenue;
+use Error;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
 {
@@ -23,13 +27,7 @@ class DashboardController extends Controller
         // echo 'dashboard';
         // die();
 
-        if (empty(Auth::user()->email)) {
-            return redirect()->to('/login');
-        }
-
         $helper = new AccurateHelperService();
-        $invoiceService = new AccurateInvoice();
-        $revenueService = new AccurateRevenue();
 
         $isTokenExist = $helper->isAccessTokenExist();
 
@@ -45,23 +43,91 @@ class DashboardController extends Controller
 
         $accessToken = $isTokenExist['access_token'];
 
-        $getDBSession = $helper->getDBSession($accessToken);
-
-        if (isset($getDBSession['error'])) {
-            view('error', ['message' => 'ERROR WHEN CONNECTING TO ACCURATE DB SESSION']);
-            die();
+        if (empty(Auth::user()->email)) {
+            return redirect()->to('/login');
         }
 
-        $xSessionId = $getDBSession['session_id'];
-        $host = $getDBSession['accurate_host'];
-
-        $totalInvoice = $invoiceService->getTotalInvoice($host, $accessToken, $xSessionId);
-        $totalRevenue = $revenueService->getTotalRevenue($host, $accessToken, $xSessionId);
-
-        $totalAccrue = $totalInvoice - $totalRevenue;
-
         $menus = Menu::orderBy('order')->get();
-        return view('pages.index', compact('menus', 'totalInvoice', 'totalRevenue', 'totalAccrue'));
+
+        $baseUrl = config('accurate.base_url');
+
+        $data = [
+            'menus' => $menus,
+            'url_total_invoice' => $baseUrl . '/api/dashboard_accurate/annual_invoice?access_token=' . $accessToken,
+            'url_total_revenue' => $baseUrl . '/api/dashboard_accurate/annual_revenue?access_token=' . $accessToken
+        ];
+
+        return view('pages.index', $data);
+    }
+
+    public function getAnnualInvoice(Request $request)
+    {
+        try {
+            $accessToken = $request->get('access_token');
+            if (empty($accessToken)) {
+                throw new Error('Access token is empty', 401);
+            }
+
+            $helper = new AccurateHelperService();
+
+            $invoiceService = new AccurateInvoice();
+
+            $getDBSession = $helper->getDBSession($accessToken);
+
+            if (isset($getDBSession['error'])) {
+                throw new Error('Failed to get db session', 401);
+            }
+
+            $xSessionId = $getDBSession['session_id'];
+            $host = $getDBSession['accurate_host'];
+
+            $totalInvoice = $invoiceService->getTotalInvoice($host, $accessToken, $xSessionId);
+
+            return response([
+                'data' => $totalInvoice
+            ], 200);
+        } catch (\Error $th) {
+            Log::debug('ERROR WHEN GETTING TOTAL ANNUAL INVOICE', ['throw' => $th->getMessage(), 'line' => $th->getLine()]);
+
+            return response([
+                'error' => $th->getMessage()
+            ], (empty($th->getCode()) || $th->getCode() == 0) ? 500 : $th->getCode());
+        }
+    }
+
+    public function getAnnualRevenue(Request $request)
+    {
+        try {
+            $accessToken = $request->get('access_token');
+            if (empty($accessToken)) {
+                throw new Error('Access token is empty', 401);
+            }
+
+            $helper = new AccurateHelperService();
+
+            $revenueService = new AccurateRevenue();
+
+            $getDBSession = $helper->getDBSession($accessToken);
+
+            if (isset($getDBSession['error'])) {
+                throw new Error('Failed to get db session', 401);
+            }
+
+            $xSessionId = $getDBSession['session_id'];
+            $host = $getDBSession['accurate_host'];
+
+            $totalRevenue = $revenueService->getTotalRevenue($host, $accessToken, $xSessionId);
+
+            return response([
+                'data' => $totalRevenue
+            ], 200);
+        } catch (\Error $th) {
+            Log::debug('ERROR WHEN GETTING TOTAL ANNUAL REVENUE', ['throw' => $th->getMessage(), 'line' => $th->getLine()]);
+
+            return response([
+                'error' => $th->getMessage()
+            ], (empty($th->getCode()) || $th->getCode() == 0) ? 500 : $th->getCode());
+        }
     }
 
     public function show(Menu $menu)

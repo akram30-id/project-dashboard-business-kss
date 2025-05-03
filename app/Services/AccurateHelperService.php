@@ -147,7 +147,7 @@ class AccurateHelperService
 
         $userSession = session('email');
 
-        $expired = Carbon::createFromTimestamp(time())->addMinutes(1)->timestamp;
+        $expired = Carbon::createFromTimestamp(time())->addDays(14)->timestamp;
         $accessToken = new AccurateToken();
         $accessToken->access_token = $responseToken['access_token'];
         $accessToken->refresh_token = $responseToken['refresh_token'];
@@ -170,7 +170,7 @@ class AccurateHelperService
 
     function isAccessTokenExist(): array
     {
-        $getAccessToken = AccurateToken::orderBy('expired_at', 'DESC')->first();
+        $getAccessToken = AccurateToken::orderByDesc('expired_at')->first();
 
         if (empty($getAccessToken)) {
             return [];
