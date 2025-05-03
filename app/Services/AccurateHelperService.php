@@ -184,6 +184,8 @@ class AccurateHelperService
             return $getAccessToken;
         }
 
+        session(['accurate_token' => $getAccessToken->access_token]);
+
         return $getAccessToken->toArray();
     }
 
