@@ -1,7 +1,7 @@
 name: Deploy Laravel to VPS
 
 on:
-   push:
+  push:
     branches: [ main ]
 
 jobs:
@@ -20,19 +20,34 @@ jobs:
           ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy to VPS
+        env:
+          GIT_SSH_COMMAND: "ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no"
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             set -e
+            echo "==> Navigating to project directory"
             cd /var/www/project-dashboard-business-kss
+
+            echo "==> Checking for uncommitted changes"
+            if [ -n "$(git status --porcelain)" ]; then
+              echo "⚠️ WARNING: Uncommitted changes detected. Resetting local repo..."
+              git reset --hard
+              git clean -fd
+            fi
+
+            echo "==> Checking out main branch"
             git checkout main
-            echo "Stashing local changes..."
-            git stash
-            echo "Pulling latest code..."
+
+            echo "==> Pulling latest code"
             git pull origin main
-            echo "Restoring local changes..."
-            git stash pop || true
+
+            echo "==> Installing PHP dependencies"
             composer install --no-interaction --prefer-dist --optimize-autoloader
+
+            echo "==> Running Laravel migrations and optimizations"
             php artisan migrate --force
             php artisan config:cache
             php artisan route:cache
+
+            echo "✅ Deployment finished successfully!"
           EOF
