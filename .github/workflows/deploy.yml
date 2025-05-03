@@ -41,6 +41,11 @@ jobs:
             echo "==> Pulling latest code"
             git pull origin main
 
+            echo "Ensuring SQLite file exists..."
+            if [ ! -f database/database.sqlite ]; then
+              touch database/database.sqlite
+            fi
+            
             echo "==> Installing PHP dependencies"
             composer install --no-interaction --prefer-dist --optimize-autoloader
 
