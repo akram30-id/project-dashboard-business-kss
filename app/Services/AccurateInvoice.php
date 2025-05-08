@@ -63,8 +63,8 @@ class AccurateInvoice
             'Authorization' => 'Bearer ' . $accessToken
         ])->get($host . $endpoint, [
             'filter.lastPaymentDate.op' => 'BETWEEN',
-            'filter.lastPaymentDate.val[0]' => Carbon::createFromDate(2025, $periode['start_month'])->startOfMonth()->format('d/m/Y'),
-            'filter.lastPaymentDate.val[1]' => Carbon::createFromDate(2025, $periode['end_month'])->endOfMonth()->format('d/m/Y'),
+            'filter.lastPaymentDate.val[0]' => Carbon::createFromDate($year, $periode['start_month'])->startOfMonth()->format('d/m/Y'),
+            'filter.lastPaymentDate.val[1]' => Carbon::createFromDate($year, $periode['end_month'])->endOfMonth()->format('d/m/Y'),
             'filter.approvalStatus' => 'APPROVED',
             'filter.outstanding' => $this->isAccrue ? 'TRUE' : 'FALSE',
             'sp.pageSize' => 100,

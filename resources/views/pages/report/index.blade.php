@@ -23,15 +23,15 @@
                     </div>
 
                     <div class="dashboard-container">
-                        @include('components.reports.year-selector')
+                        @include('pages.report.year-selector')
                         <div class="row g-3">
                             <div class="col-12">
                                 <div class="row g-3">
                                     <div class="col-lg-5 col-12">
-                                        @include('components.reports.stats-cards')
+                                        @include('pages.report.stats-cards')
                                     </div>
                                     <div class="col-lg-7 col-12">
-                                        @include('components.reports.chart-container')
+                                        @include('pages.report.chart-container')
                                     </div>
                                 </div>
                             </div>

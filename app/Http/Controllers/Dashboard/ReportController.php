@@ -9,6 +9,7 @@ use App\Services\AccurateRevenue;
 use Error;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class ReportController extends Controller
@@ -32,6 +33,7 @@ class ReportController extends Controller
             $data = [
                 'list_year' => $listYear,
                 'url_get_list_annual' => config('accurate.base_url') . '/api/report_annual?access_token=' . $accessToken,
+                'url_get_list_monthly' => config('accurate.base_url') . '/api/report_annual/monthly?access_token=' . $accessToken
             ];
 
             return view('pages.report.index', compact('data'));
@@ -68,8 +70,8 @@ class ReportController extends Controller
     public function listAnnual($year, $accessToken)
     {
         $helper = new AccurateHelperService();
-        $invoiceService = new AccurateInvoice();
-        $revenueService = new AccurateRevenue();
+        $invoiceService = new AccurateInvoice(false);
+        $accrueService = new AccurateInvoice(true);
 
         $getDBSession = $helper->getDBSession($accessToken);
 
@@ -83,17 +85,81 @@ class ReportController extends Controller
 
         $getCurrentAnnualTotalInvoice = $invoiceService->getTotalInvoice($host, $accessToken, $xSessionId, true, 1, null, 0, $year);
 
-        $getCurrentAnnualTotalRevenue = $revenueService->getTotalRevenue($host, $accessToken, $xSessionId, true, 1, null, 0, $year);
+        $getCurrentAnnualTotalAccrue = $accrueService->getTotalInvoice($host, $accessToken, $xSessionId, true, 1, null, 0, $year);
 
-        $accrue = $getCurrentAnnualTotalInvoice - $getCurrentAnnualTotalRevenue;
+        $revenue = $getCurrentAnnualTotalInvoice + $getCurrentAnnualTotalAccrue;
 
         $data = [
             'current_annual_invoice' => $getCurrentAnnualTotalInvoice,
-            'current_annual_revenue' => $getCurrentAnnualTotalRevenue,
-            'current_annual_accrue' => $accrue,
+            'current_annual_revenue' => $revenue,
+            'current_annual_accrue' => $getCurrentAnnualTotalAccrue,
             'year' => $year
         ];
 
         return $data;
+    }
+
+    public function apiListMonthly(Request $request)
+    {
+        try {
+            $month = $request->get('month');
+            $year = $request->get('year');
+            $accessToken = $request->get('access_token');
+
+            if (null === $year) {
+                throw new Error('E_401003', 401);
+            }
+
+            if (null === $accessToken) {
+                throw new Error('E_401004', 401);
+            }
+
+            $helper = new AccurateHelperService();
+            $invoiceService = new AccurateInvoice();
+            $revenueService = new AccurateRevenue();
+
+            $getDBSession = $helper->getDBSession($accessToken);
+
+            if (isset($getDBSession['error']) || empty($getDBSession)) {
+                throw new Error('E_401005', 401);
+            }
+
+            $xSessionId = $getDBSession['session_id'];
+            $host = $getDBSession['accurate_host'];
+
+            $cacheKey = "invoice_revenue_{$year}_" . ($month ?? 'all') . "_" . md5($accessToken);
+
+            $data = Cache::remember($cacheKey, 300, function () use ($month, $year, $host, $accessToken, $xSessionId, $invoiceService, $revenueService) {
+                $data = [];
+                $data[$year]['invoice'] = [];
+                $data[$year]['revenue'] = [];
+                $data[$year]['accrue'] = [];
+
+                if ($month === null) {
+                    for ($i = 1; $i <= 12; $i++) {
+                        $totalInvoice = $invoiceService->getTotalInvoiceAnnual($year, $i, $host, $accessToken, $xSessionId);
+                        $totalRevenue = $revenueService->getTotalRevenueAnnual($year, $i, $host, $accessToken, $xSessionId);
+                        $accrue = intval($totalInvoice) - intval($totalRevenue);
+
+                        $data[$year]['invoice'][] = $totalInvoice;
+                        $data[$year]['revenue'][] = $totalRevenue;
+                        $data[$year]['accrue'][] = $accrue;
+                    }
+                }
+
+                return $data;
+            });
+
+            return response([
+                'data' => $data
+            ]);
+        } catch (\Throwable $th) {
+            Log::error('FAILED TO GET API REPORT ANNUALY', ['error' => $th->getMessage()]);
+            return response([
+                'error' => $th->getMessage(),
+                'line' => $th->getLine(),
+                'file' => $th->getFile()
+            ], $th->getCode() == 0 ? 500 : $th->getCode());
+        }
     }
 }
