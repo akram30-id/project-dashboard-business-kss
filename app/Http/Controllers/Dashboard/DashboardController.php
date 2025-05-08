@@ -54,7 +54,7 @@ class DashboardController extends Controller
         $data = [
             'menus' => $menus,
             'url_total_invoice' => $baseUrl . '/api/dashboard_accurate/annual_invoice?access_token=' . $accessToken,
-            'url_total_revenue' => $baseUrl . '/api/dashboard_accurate/annual_revenue?access_token=' . $accessToken
+            'url_total_accrue' => $baseUrl . '/api/dashboard_accurate/annual_accrue?access_token=' . $accessToken,
         ];
 
         return view('pages.index', $data);
@@ -70,8 +70,6 @@ class DashboardController extends Controller
 
             $helper = new AccurateHelperService();
 
-            $invoiceService = new AccurateInvoice();
-
             $getDBSession = $helper->getDBSession($accessToken);
 
             if (isset($getDBSession['error'])) {
@@ -81,6 +79,7 @@ class DashboardController extends Controller
             $xSessionId = $getDBSession['session_id'];
             $host = $getDBSession['accurate_host'];
 
+            $invoiceService = new AccurateInvoice(false);
             $totalInvoice = $invoiceService->getTotalInvoice($host, $accessToken, $xSessionId);
 
             return response([
@@ -95,7 +94,41 @@ class DashboardController extends Controller
         }
     }
 
-    public function getAnnualRevenue(Request $request)
+    public function getAnnualAccrue(Request $request)
+    {
+        try {
+            $accessToken = $request->get('access_token');
+            if (empty($accessToken)) {
+                throw new Error('Access token is empty', 401);
+            }
+
+            $helper = new AccurateHelperService();
+
+            $getDBSession = $helper->getDBSession($accessToken);
+
+            if (isset($getDBSession['error'])) {
+                throw new Error('Failed to get db session', 401);
+            }
+
+            $xSessionId = $getDBSession['session_id'];
+            $host = $getDBSession['accurate_host'];
+
+            $accrueService = new AccurateInvoice(TRUE); // OUTSTANDING INVOICE
+            $totalAccrue = $accrueService->getTotalInvoice($host, $accessToken, $xSessionId);
+
+            return response([
+                'data' => $totalAccrue
+            ], 200);
+        } catch (\Error $th) {
+            Log::debug('ERROR WHEN GETTING TOTAL ANNUAL INVOICE', ['throw' => $th->getMessage(), 'line' => $th->getLine()]);
+
+            return response([
+                'error' => $th->getMessage()
+            ], (empty($th->getCode()) || $th->getCode() == 0) ? 500 : $th->getCode());
+        }
+    }
+
+    public function getAnnualSales(Request $request)
     {
         try {
             $accessToken = $request->get('access_token');

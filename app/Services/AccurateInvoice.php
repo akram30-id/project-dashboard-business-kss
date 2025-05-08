@@ -7,12 +7,13 @@ use Illuminate\Support\Facades\Http;
 
 class AccurateInvoice
 {
+    public $isAccrue;
     /**
      * Create a new class instance.
      */
-    public function __construct()
+    public function __construct($isAccrue = FALSE)
     {
-        //
+        $this->isAccrue = $isAccrue;
     }
 
     function getTotalInvoice(string $host, string $accessToken, string $dbSession, bool $isAnnual = true, int $page = 1, $totalPage = null, int $totalInvoice = 0, $year = null)//: int
@@ -44,7 +45,8 @@ class AccurateInvoice
                 'filter.lastPaymentDate.val[0]' => Carbon::createFromDate($year, $periode['start_month'])->startOfMonth()->format('d/m/Y'),
                 'filter.lastPaymentDate.val[1]' => Carbon::createFromDate($year, $periode['end_month'])->endOfMonth()->format('d/m/Y'),
                 'filter.approvalStatus' => 'APPROVED',
-                'sp.pageSize' => 100
+                'filter.outstanding' => $this->isAccrue ? 'TRUE' : 'FALSE',
+                'sp.pageSize' => 100,
             ]);
 
             if ($getPageCount->successful()) {
@@ -64,6 +66,7 @@ class AccurateInvoice
             'filter.lastPaymentDate.val[0]' => Carbon::createFromDate(2025, $periode['start_month'])->startOfMonth()->format('d/m/Y'),
             'filter.lastPaymentDate.val[1]' => Carbon::createFromDate(2025, $periode['end_month'])->endOfMonth()->format('d/m/Y'),
             'filter.approvalStatus' => 'APPROVED',
+            'filter.outstanding' => $this->isAccrue ? 'TRUE' : 'FALSE',
             'sp.pageSize' => 100,
             'sp.page' => $page,
             'fields' => 'totalAmount'
@@ -95,8 +98,8 @@ class AccurateInvoice
                 'Authorization' => 'Bearer ' . $accessToken
             ])->get($host . $endpoint, [
                 'filter.lastPaymentDate.op' => 'BETWEEN',
-                'filter.lastPaymentDate.val[0]' => Carbon::createFromDate($year, $month, 1)->startOfMonth()->format('d/m/Y'),
-                'filter.lastPaymentDate.val[1]' => Carbon::createFromDate($year, $month, 1)->endOfMonth()->format('d/m/Y'),
+                'filter.lastPaymentDate.val[0]' => Carbon::createFromDate($year, $month)->startOfMonth()->format('d/m/Y'),
+                'filter.lastPaymentDate.val[1]' => Carbon::createFromDate($year, $month)->endOfMonth()->format('d/m/Y'),
                 'filter.approvalStatus' => 'APPROVED',
                 'sp.pageSize' => 100
             ]);
@@ -115,8 +118,8 @@ class AccurateInvoice
             'Authorization' => 'Bearer ' . $accessToken
         ])->get($host . $endpoint, [
             'filter.lastPaymentDate.op' => 'BETWEEN',
-            'filter.lastPaymentDate.val[0]' => Carbon::createFromDate($year, $month, 1)->startOfMonth()->format('d/m/Y'),
-            'filter.lastPaymentDate.val[1]' => Carbon::createFromDate($year, $month, 1)->endOfMonth()->format('d/m/Y'),
+            'filter.lastPaymentDate.val[0]' => Carbon::createFromDate($year, $month)->startOfMonth()->format('d/m/Y'),
+            'filter.lastPaymentDate.val[1]' => Carbon::createFromDate($year, $month)->endOfMonth()->format('d/m/Y'),
             'filter.approvalStatus' => 'APPROVED',
             'sp.pageSize' => 100,
             'sp.page' => $page,

@@ -5,7 +5,7 @@ $(document).ready(function () {
     const dashboard = function (e) {
 
         let invoice = 0;
-        let revenue = 0;
+        let accrue = 0;
 
         const getInvoice = $.ajax({
             type: "GET",
@@ -19,22 +19,22 @@ $(document).ready(function () {
             }
         });
 
-        const getRevenue = $.ajax({
+        const getAccrue = $.ajax({
             type: "GET",
-            url: "{{ $url_total_revenue }}",
+            url: "{{ $url_total_accrue }}",
             data: null,
             dataType: "json",
             success: function (response) {
-                revenue = response.data;
+                accrue = response.data;
 
-                $("#revenue-total").text("Rp " + number_format(response.data));
+                $("#accrue-total").text("Rp " + number_format(response.data));
             }
         });
 
-        $.when(getInvoice, getRevenue).done(function () {
-            let accrue = invoice - revenue;
+        $.when(getInvoice, getAccrue).done(function () {
+            let revenue = invoice + accrue;
 
-            $("#accrue-total").text("Rp " + number_format(accrue));
+            $("#revenue-total").text("Rp " + number_format(revenue));
         });
     }
 
