@@ -19,7 +19,7 @@ class ReportController extends Controller
     public function index(Request $request)
     {
         try {
-            $this->authorize('read Report');
+            // $this->authorize('read Report');
 
             $year = date('Y');
             $listYear = [$year];
