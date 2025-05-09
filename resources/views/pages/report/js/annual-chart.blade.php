@@ -81,7 +81,7 @@
     }
 
     $(document).ready(function() {
-        getDataForYearlyChart(new Date().getFullYear()); // panggil manual
+        getDataForYearlyChart(new Date().getFullYear());
 
         $(".year-pill").click(function(e) {
             e.preventDefault();
@@ -93,6 +93,93 @@
 
             const chartYearSelected = $(this).data("year");
             getDataForYearlyChart(chartYearSelected);
-        })
+        });
+
+        // Toggle between chart and table view
+        $("#toggleViewYearly").click(function() {
+            const chartView = $("#chartViewYearly");
+            const tableView = $("#tableViewYearly");
+            const $button = $(this);
+
+            if (chartView.hasClass("d-none")) {
+                // Switch to chart view
+                chartView.removeClass("d-none");
+                tableView.addClass("d-none");
+                $button.html('<i class="fas fa-table"></i> Show Table');
+            } else {
+                // Switch to table view
+                chartView.addClass("d-none");
+                tableView.removeClass("d-none");
+                $button.html('<i class="fas fa-chart-bar"></i> Show Chart');
+
+                // Populate table with current chart data
+                populateComparisonTable();
+            }
+        });
+
+        // Function to populate table with chart data
+        function populateComparisonTable() {
+            if (!monthlyChart.data || !monthlyChart.data.labels) return;
+
+            const tableBody = $("#comparisonTableBody");
+            tableBody.empty();
+
+            // Format currency function
+            function formatCurrency(value) {
+                // Format number with thousands separators
+                const formattedNumber = new Intl.NumberFormat('id-ID').format(value);
+                return `Rp ${formattedNumber},-`;
+            }
+
+            // Calculate growth percentages
+            function calculateGrowth(currentIndex, dataArray) {
+                if (currentIndex === 0) return 0.5; // Default for January
+                const prevValue = dataArray[currentIndex - 1];
+                const currentValue = dataArray[currentIndex];
+                if (prevValue === 0) return 0;
+                return ((currentValue - prevValue) / prevValue).toFixed(1);
+            }
+
+            // Get full month name from abbreviation
+            function getFullMonthName(abbr) {
+                const monthNames = {
+                    'Jan': 'January',
+                    'Feb': 'February',
+                    'Mar': 'March',
+                    'Apr': 'April',
+                    'May': 'May',
+                    'Jun': 'June',
+                    'Jul': 'July',
+                    'Aug': 'August',
+                    'Sep': 'September',
+                    'Oct': 'October',
+                    'Nov': 'November',
+                    'Dec': 'December'
+                };
+                return monthNames[abbr] || abbr;
+            }
+
+            // Create table rows
+            monthlyChart.data.labels.forEach((month, index) => {
+                const revenue = monthlyChart.data.datasets[0].data[index];
+                const invoice = monthlyChart.data.datasets[1].data[index];
+                const accrue = monthlyChart.data.datasets[2].data[index];
+
+                // Calculate growth percentages
+                const revenueGrowth = calculateGrowth(index, monthlyChart.data.datasets[0].data);
+                const invoiceGrowth = calculateGrowth(index, monthlyChart.data.datasets[1].data);
+                const accrueGrowth = calculateGrowth(index, monthlyChart.data.datasets[2].data);
+
+                const row = `
+                <tr>
+                    <td>${getFullMonthName(month)}</td>
+                    <td>${formatCurrency(revenue)} <span class="text-success">(+${revenueGrowth})</span></td>
+                    <td>${formatCurrency(invoice)} <span class="text-success">(+${invoiceGrowth})</span></td>
+                    <td>${formatCurrency(accrue)} <span class="text-success">(+${accrueGrowth})</span></td>
+                </tr>
+            `;
+                tableBody.append(row);
+            });
+        }
     });
 </script>
