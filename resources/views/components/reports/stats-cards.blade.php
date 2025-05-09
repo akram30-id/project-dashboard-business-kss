@@ -11,7 +11,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h2 id="revenue-total-report">Loading . . .</h2>
-                    <p>Total Revenue <span class="year-label">Loading . . .</span></p>
+                    <p>Total Revenue <span class="year-label">2025</span></p>
                 </div>
                 <div class="icon">
                     <i class="fas fa-chart-line"></i>
@@ -50,6 +50,7 @@
 
 <script>
     $(document).ready(function() {
+
         $(".year-pill").click(function(e) {
             e.preventDefault();
 
@@ -57,8 +58,10 @@
             $("#revenue-total-report").text("Loading . . .");
             $("#accrue-total-report").text("Loading . . .");
 
-            const selectedYear = $(this).data('year');
+            const selectedYear = $(this).data("year");
+            $(".year-label").text(selectedYear);
 
+            getDataForYearlyChart(selectedYear);
             showListAnnualReport(selectedYear);
         });
 
@@ -85,6 +88,7 @@
             });
         }
 
-        showListAnnualReport(null);
+        const defaultYear = new Date().getFullYear();
+        showListAnnualReport(defaultYear);
     });
 </script>

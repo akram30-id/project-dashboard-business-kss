@@ -5,6 +5,7 @@
 @endphp --}}
 
 <!-- stats-cards.blade.php -->
+<input type="hidden" id="currentYear">
 <div class="row">
     <div class="col-md-12">
         <div class="stats-card primary">
@@ -53,6 +54,7 @@
 
         let currentYear = new Date().getFullYear();
         $(".year-label").text(currentYear);
+        $("#currentYear").val(currentYear);
 
         $(".year-pill").click(function(e) {
             e.preventDefault();
@@ -63,6 +65,7 @@
 
             const selectedYear = $(this).data('year')
             $(".year-label").text(selectedYear);
+            $("#currentYear").val(selectedYear);
 
             showListAnnualReport(selectedYear);
         });

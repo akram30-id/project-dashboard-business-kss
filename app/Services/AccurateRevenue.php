@@ -83,4 +83,59 @@ class AccurateRevenue
 
         return $totalInvoice;
     }
+
+
+    function getTotalRevenueAnnual($year, int $month, string $host, string $accessToken, string $dbSession, int $page = 1, int $totalPage = null, int $totalRevenue = 0)
+    {
+        $endpoint = '/accurate/api/sales-receipt/list.do';
+
+        // Hit API hanya sekali di awal untuk ambil total halaman
+        if ($totalPage === null) {
+            $getPageCount = Http::withHeaders([
+                'X-Session-ID' => $dbSession,
+                'Authorization' => 'Bearer ' . $accessToken
+            ])->get($host . $endpoint, [
+                'filter.transDate.op' => 'BETWEEN',
+                'filter.transDate.val[0]' => Carbon::createFromDate($year, $month)->startOfMonth()->format('d/m/Y'),
+                'filter.transDate.val[0]' => Carbon::createFromDate($year, $month)->endOfMonth()->format('d/m/Y'),
+                'filter.approvalStatus' => 'APPROVED',
+                'sp.pageSize' => 100
+            ]);
+
+            if ($getPageCount->successful()) {
+                $resulPageCount = $getPageCount->json();
+                $totalPage = $resulPageCount['sp']['pageCount'];
+            } else {
+                return $totalRevenue; // jika gagal ambil pageCount, return total 0
+            }
+        }
+
+        // Ambil data dari halaman saat ini
+        $hitAPI = Http::withHeaders([
+            'X-Session-ID' => $dbSession,
+            'Authorization' => 'Bearer ' . $accessToken
+        ])->get($host . $endpoint, [
+            'filter.lastPaymentDate.op' => 'BETWEEN',
+            'filter.lastPaymentDate.val[0]' => Carbon::createFromDate($year, $month)->startOfMonth()->format('d/m/Y'),
+            'filter.lastPaymentDate.val[1]' => Carbon::createFromDate($year, $month)->endOfMonth()->format('d/m/Y'),
+            'filter.approvalStatus' => 'APPROVED',
+            'sp.pageSize' => 100,
+            'sp.page' => $page,
+            'fields' => 'equivalentAmount'
+        ]);
+
+        if ($hitAPI->successful()) {
+            $resultHitAPI = $hitAPI->json();
+            foreach ($resultHitAPI['d'] as $valRevenue) {
+                $totalRevenue += $valRevenue['equivalentAmount'];
+            }
+        }
+
+        // Jika masih ada halaman berikutnya, panggil lagi fungsi ini
+        if ($page < $totalPage) {
+            return $this->getTotalRevenueAnnual($year, $month, $host, $accessToken, $dbSession, $page + 1, $totalPage, $totalRevenue);
+        }
+
+        return $totalRevenue;
+    }
 }

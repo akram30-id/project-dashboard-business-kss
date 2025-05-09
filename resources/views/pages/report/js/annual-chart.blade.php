@@ -1,145 +1,98 @@
 <script>
-    $(document).ready(function() {
-        const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov",
-            "Dec"];
-        const CHART_COLORS = {
-            revenue: "#4e73df",
-            invoice: "#1cc88a",
-            accrue: "#36b9cc",
-        };
+    let chartCtx = document.getElementById('yearlyChart')?.getContext('2d');
+    if (!chartCtx) {
+        console.error("Canvas #yearlyChart tidak ditemukan!");
+    }
 
-        let currentYear = new Date().getFullYear();
-        let currentChartType = "bar";
-        let yearlyChart;
+    let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-        let annualData = {};
-        let dataPerMonth = {}; // Perbaikan: pastikan format benar
-
-        function getDataMonthly() {
-            let year = new Date().getFullYear();
-            let ajaxPromises = [];
-
-            for (let i = 0; i < 5; i++) {
-                let currentLoopYear = year--;
-                const url = "{{ $data['url_get_list_monthly'] }}" + `&year=${currentLoopYear}`;
-
-                let ajaxPromise = $.ajax({
-                    type: "GET",
-                    url: url,
-                    dataType: "json"
-                }).then(response => {
-                    annualData[currentLoopYear] = response.data;
-
-                    // Jika ini tahun sekarang, langsung render chart
-                    if (currentLoopYear === currentYear) {
-                        dataPerMonth = annualData[currentYear];
-                        console.log("Data untuk chart:", dataPerMonth);
-
-                        if (yearlyChart) {
-                            yearlyChart.destroy();
+    // Initial empty chart
+    let monthlyChart = new Chart(chartCtx, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                    label: 'Revenue',
+                    backgroundColor: '#4e73df',
+                    data: []
+                },
+                {
+                    label: 'Invoice',
+                    backgroundColor: '#1cc88a',
+                    data: []
+                },
+                {
+                    label: 'Accrue',
+                    backgroundColor: '#36b9cc',
+                    data: []
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            animation: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return 'Rp ' + (value / 1000000).toFixed(0) + ' Jt';
                         }
-                        initializeChart();
                     }
-                });
-
-                ajaxPromises.push(ajaxPromise);
+                }
             }
         }
+    });
 
-        function initializeChart() {
-            if (!dataPerMonth || !dataPerMonth.revenue || !dataPerMonth.invoice || !dataPerMonth.accrue) {
-                console.error("Data tidak lengkap untuk chart.");
-                return;
+    window.getDataForYearlyChart = function(year) {
+        const url = "{{ $data['url_get_list_monthly'] }}&year=" + year;
+
+        $.ajax({
+            url: url,
+            method: 'GET',
+            success: function(response) {
+                let data = response.data[year];
+                let revenue = data.revenue;
+                let invoice = data.invoice;
+                let accrue = data.accrue;
+
+                let index = 0;
+
+                function renderNextMonth() {
+                    if (index >= 12) return;
+
+                    monthlyChart.data.labels.push(months[index]);
+                    monthlyChart.data.datasets[0].data.push(revenue[index]);
+                    monthlyChart.data.datasets[1].data.push(invoice[index]);
+                    monthlyChart.data.datasets[2].data.push(accrue[index]);
+
+                    monthlyChart.update();
+                    index++;
+                    setTimeout(renderNextMonth, 300); // Adjust delay as needed
+                }
+
+                // baru render lagi
+                renderNextMonth();
+            },
+            error: function() {
+                console.error("Failed to load chart data.");
             }
+        });
+    }
 
-            if (!elements.yearlyChart) {
-                console.error("Canvas untuk chart tidak ditemukan!");
-                return;
-            }
+    $(document).ready(function() {
+        getDataForYearlyChart(new Date().getFullYear()); // panggil manual
 
-            const ctx = elements.yearlyChart.getContext("2d");
+        $(".year-pill").click(function(e) {
+            e.preventDefault();
 
-            const config = createChartConfig();
-            yearlyChart = new Chart(ctx, config);
-        }
+            // kosongin chartnya dulu
+            monthlyChart.data.labels = [];
+            monthlyChart.data.datasets.forEach(ds => ds.data = []);
+            monthlyChart.update();
 
-        function createChartConfig() {
-            return {
-                type: currentChartType,
-                data: {
-                    labels: MONTHS_SHORT,
-                    datasets: [{
-                            label: "Revenue",
-                            data: dataPerMonth.revenue,
-                            backgroundColor: CHART_COLORS.revenue,
-                            borderColor: CHART_COLORS.revenue,
-                            borderWidth: 2,
-                        },
-                        {
-                            label: "Invoice",
-                            data: dataPerMonth.invoice,
-                            backgroundColor: CHART_COLORS.invoice,
-                            borderColor: CHART_COLORS.invoice,
-                            borderWidth: 2,
-                        },
-                        {
-                            label: "Accrue",
-                            data: dataPerMonth.accrue,
-                            backgroundColor: CHART_COLORS.accrue,
-                            borderColor: CHART_COLORS.accrue,
-                            borderWidth: 2,
-                        },
-                    ],
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: "top",
-                            labels: {
-                                boxWidth: 12,
-                                usePointStyle: true,
-                                pointStyle: "circle",
-                            },
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let value = context.raw;
-                                    return `${context.dataset.label}: Rp ${value.toLocaleString()}`;
-                                },
-                            },
-                        },
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false,
-                                drawBorder: false
-                            },
-                        },
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return `Rp ${value.toLocaleString()} Jt`;
-                                },
-                            },
-                            grid: {
-                                color: "rgba(0, 0, 0, 0.05)",
-                                drawBorder: false
-                            },
-                        },
-                    },
-                },
-            };
-        }
-
-        const elements = {
-            yearlyChart: document.getElementById("yearlyChart"),
-        };
-
-        getDataMonthly();
+            const chartYearSelected = $(this).data("year");
+            getDataForYearlyChart(chartYearSelected);
+        })
     });
 </script>

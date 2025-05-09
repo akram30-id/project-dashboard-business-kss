@@ -115,8 +115,8 @@ class ReportController extends Controller
             }
 
             $helper = new AccurateHelperService();
-            $invoiceService = new AccurateInvoice();
-            $revenueService = new AccurateRevenue();
+            $invoiceService = new AccurateInvoice(false);
+            $accrueService = new AccurateInvoice(true);
 
             $getDBSession = $helper->getDBSession($accessToken);
 
@@ -129,7 +129,7 @@ class ReportController extends Controller
 
             $cacheKey = "invoice_revenue_{$year}_" . ($month ?? 'all') . "_" . md5($accessToken);
 
-            $data = Cache::remember($cacheKey, 300, function () use ($month, $year, $host, $accessToken, $xSessionId, $invoiceService, $revenueService) {
+            $data = Cache::remember($cacheKey, 300, function () use ($month, $year, $host, $accessToken, $xSessionId, $invoiceService, $accrueService) {
                 $data = [];
                 $data[$year]['invoice'] = [];
                 $data[$year]['revenue'] = [];
@@ -138,12 +138,12 @@ class ReportController extends Controller
                 if ($month === null) {
                     for ($i = 1; $i <= 12; $i++) {
                         $totalInvoice = $invoiceService->getTotalInvoiceAnnual($year, $i, $host, $accessToken, $xSessionId);
-                        $totalRevenue = $revenueService->getTotalRevenueAnnual($year, $i, $host, $accessToken, $xSessionId);
-                        $accrue = intval($totalInvoice) - intval($totalRevenue);
+                        $totalAccrue = $accrueService->getTotalInvoiceAnnual($year, $i, $host, $accessToken, $xSessionId);
+                        $revenue = $totalInvoice + $totalAccrue;
 
                         $data[$year]['invoice'][] = $totalInvoice;
-                        $data[$year]['revenue'][] = $totalRevenue;
-                        $data[$year]['accrue'][] = $accrue;
+                        $data[$year]['revenue'][] = $revenue;
+                        $data[$year]['accrue'][] = $totalAccrue;
                     }
                 }
 

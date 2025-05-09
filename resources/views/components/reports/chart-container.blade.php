@@ -23,7 +23,7 @@
         <div id="chartViewYearly">
             <canvas id="yearlyChart" style="height: 300px;"></canvas>
         </div>
-        
+
         <!-- Table View (hidden by default) -->
         <div id="tableViewYearly" class="d-none">
             <div class="table-responsive">

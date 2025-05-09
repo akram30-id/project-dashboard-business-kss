@@ -101,6 +101,7 @@ class AccurateInvoice
                 'filter.lastPaymentDate.val[0]' => Carbon::createFromDate($year, $month)->startOfMonth()->format('d/m/Y'),
                 'filter.lastPaymentDate.val[1]' => Carbon::createFromDate($year, $month)->endOfMonth()->format('d/m/Y'),
                 'filter.approvalStatus' => 'APPROVED',
+                'filter.outstanding' => $this->isAccrue ? 'TRUE' : 'FALSE',
                 'sp.pageSize' => 100
             ]);
 
@@ -121,6 +122,7 @@ class AccurateInvoice
             'filter.lastPaymentDate.val[0]' => Carbon::createFromDate($year, $month)->startOfMonth()->format('d/m/Y'),
             'filter.lastPaymentDate.val[1]' => Carbon::createFromDate($year, $month)->endOfMonth()->format('d/m/Y'),
             'filter.approvalStatus' => 'APPROVED',
+            'filter.outstanding' => $this->isAccrue ? 'TRUE' : 'FALSE',
             'sp.pageSize' => 100,
             'sp.page' => $page,
             'fields' => 'totalAmount'

@@ -1,5 +1,8 @@
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
-<script src="{{ asset('') }}assets/js/yearly-report.js"></script>
+
+{{-- <script src="{{ asset('') }}assets/js/yearly-report.js"></script> --}}
+
+@include('pages.report.js.annual-chart')
+{{-- @include('pages.report.js.annual-chart_backup') --}}
 
 <script>
     // Data sampel (bisa diganti dengan data dari backend)
