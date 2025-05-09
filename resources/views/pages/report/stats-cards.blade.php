@@ -38,7 +38,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h2 id="accrue-total-report">Loading . . .</h2>
-                    <p>Total Accrue <span class="year-label">Loading . . .</span></p>
+                    <p>Total Unbilled <span class="year-label">Loading . . .</span></p>
                 </div>
                 <div class="icon">
                     <i class="fas fa-calculator"></i>

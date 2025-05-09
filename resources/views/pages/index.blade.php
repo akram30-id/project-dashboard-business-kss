@@ -61,7 +61,7 @@
                                             'type' => 'info',
                                             'id' => 'accrue-total',
                                             'value' => 'Loading . . .',
-                                            'label' => 'Total Accrue',
+                                            'label' => 'Total Unbilled',
                                             'icon' => 'fas fa-chart-pie',
                                             'chartIcon' => 'fas fa-calculator',
                                             'year' => '2025',

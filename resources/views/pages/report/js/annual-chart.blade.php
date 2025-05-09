@@ -22,7 +22,7 @@
                     data: []
                 },
                 {
-                    label: 'Accrue',
+                    label: 'Unbilled',
                     backgroundColor: '#36b9cc',
                     data: []
                 }
