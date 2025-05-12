@@ -34,6 +34,7 @@
                             <th>Revenue</th>
                             <th>Invoice</th>
                             <th>Accrue</th>
+                            <th>#####</th>
                         </tr>
                     </thead>
                     <tbody id="comparisonTableBody">
@@ -43,6 +44,42 @@
             </div>
         </div>
     </div>
+
+    {{-- MODAL OF DETAIL INVOICE MONTHLY --}}
+    <div class="modal fade" id="monthDetailsModal" tabindex="-1" aria-labelledby="monthDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog" style="width: 100%; max-width: 90%;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="monthDetailsModalLabel"><span id="detail-month-year"></span> Financial Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h6 class="fw-bold mb-3">Detail Information</h6>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th scope="col">No</th>
+                                    <th scope="col">Nama Pekerjaan</th>
+                                    <th scope="col">Nama Customer</th>
+                                    <th scope="col">No.CO</th>
+                                    <th scope="col">Tanggal CO</th>
+                                    <th scope="col">No.DO</th>
+                                    <th scope="col">Tanggal DO</th>
+                                    <th scope="col">Nominal Invoice</th>
+                                    <th scope="col">Status Invoice</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-detail-invoice">
+                                <!-- Table rows will be populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- <div class="chart-footer">
         <div class="row">
             <div class="col-md-4 text-center mb-2 mb-md-0">

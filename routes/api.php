@@ -19,3 +19,7 @@ Route::prefix('report_annual')->group(function () {
     Route::get('/', [ReportController::class, 'apiListAnnual'])->name('report_annual');
     Route::get('/monthly', [ReportController::class, 'apiListMonthly'])->name('report_annual.monthly');
 });
+
+Route::prefix('invoice_monthly_detail')->group(function () {
+    Route::get('/', [ReportController::class, 'apiDetailMonthly'])->name('invoice_monthly_detail');
+});

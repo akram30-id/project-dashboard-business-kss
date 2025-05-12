@@ -6,6 +6,11 @@
 
     let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+    const MONTHS_FULL = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+
     // Initial empty chart
     let monthlyChart = new Chart(chartCtx, {
         type: 'bar',
@@ -83,6 +88,8 @@
     $(document).ready(function() {
         getDataForYearlyChart(new Date().getFullYear());
 
+        let year = new Date().getFullYear();
+
         $(".year-pill").click(function(e) {
             e.preventDefault();
 
@@ -92,6 +99,7 @@
             monthlyChart.update();
 
             const chartYearSelected = $(this).data("year");
+            year = chartYearSelected;
             getDataForYearlyChart(chartYearSelected);
         });
 
@@ -176,10 +184,61 @@
                     <td>${formatCurrency(revenue)} <span class="text-success">(+${revenueGrowth})</span></td>
                     <td>${formatCurrency(invoice)} <span class="text-success">(+${invoiceGrowth})</span></td>
                     <td>${formatCurrency(accrue)} <span class="text-success">(+${accrueGrowth})</span></td>
+                    <td><button class="btn btn-sm btn-warning view-month-details" data-toggle="modal" data-target="#monthDetailsModal" data-month="${index}" data-year="${year}">Detail</button></td>
                 </tr>
             `;
                 tableBody.append(row);
             });
+        }
+
+        $("#tableViewYearly").on("click", ".view-month-details", function() {
+            const detailYear = $(this).data('year');
+            const detailMonth = parseInt($(this).data('month')) + 1;
+            const monthIndex = $(this).data('month');
+
+            const urlDetailInvoiceMonthly = "{{ $data['url_get_invoice_detail_monthly'] }}&year=" +
+                detailYear + "&month=" + detailMonth;
+
+            const monthName = MONTHS_FULL[monthIndex];
+            $("#detail-month-year").text(`${monthName} ${year}`)
+
+            $("#tbody-detail-invoice").html(`<tr>
+                <td class="text-center" colspan="9">Loading . . .</td>
+            </tr>`);
+
+            $.ajax({
+                type: "GET",
+                url: urlDetailInvoiceMonthly,
+                dataType: "json",
+                success: function(response) {
+                    console.info(response);
+                    const data = response.data;
+                    showMonthDetails(detailYear, monthIndex, data);
+                }
+            });
+        });
+
+        function showMonthDetails(year, monthIndex, data) {
+            $("#tbody-detail-invoice").html("");
+
+            if (data) {
+                let no = 1;
+                data.forEach(detailInvoice => {
+                    $("#tbody-detail-invoice").append(`
+                        <tr>
+                            <td>${no++}</td>
+                            <td>${detailInvoice.work_title}</td>
+                            <td>${detailInvoice.customer_name}</td>
+                            <td>${(detailInvoice.co_no == null) ? '-' : detailInvoice.co_no}</td>
+                            <td>${detailInvoice.co_date}</td>
+                            <td>${(detailInvoice.do_no == null ) ? '-' : detailInvoice.do_no}</td>
+                            <td>${detailInvoice.do_date}</td>
+                            <td>${new Intl.NumberFormat('id-ID').format(detailInvoice.amount)}</td>
+                            <td>${detailInvoice.status}</td>
+                        </tr>
+                    `);
+                });
+            }
         }
     });
 </script>
