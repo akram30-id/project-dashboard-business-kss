@@ -11,6 +11,12 @@
             <td class="text-center" colspan="9">Loading . . .</td>
         </tr>`);
 
+        if (page <= 1) {
+            $("#prevDetailAnnual").attr("class", "page-item disabled");
+        } else {
+            $("#prevDetailAnnual").attr("class", "page-item");
+        }
+
         const urlDetailAnnual = "{{ $data['url_get_invoice_detail_annualy'] }}&year=" + year + "&page=" + page +
             "&limit=" + limit;
 
@@ -22,6 +28,10 @@
                 console.info(response);
 
                 const data = response.data;
+
+                if (!data) {
+                    $("#nextDetailAnnual").attr("class", "page-item disabled");
+                }
 
                 let detailAnnualRows;
 
@@ -36,13 +46,28 @@
                             <td>${detailAnnual.co_date}</td>
                             <td>${(detailAnnual.do_no == null) ? '-' : detailAnnual.do_no}</td>
                             <td>${detailAnnual.do_date}</td>
-                            <td>${detailAnnual.amount}</td>
+                            <td>${new Intl.NumberFormat('id-ID').format(detailAnnual.amount)}</td>
                             <td>${detailAnnual.status}</td>
                         </tr>
                     `
                 });
 
                 $("#tableBody").html(detailAnnualRows);
+
+                $("#nextDetailAnnual").off("click").on("click", function() {
+                    const nextPage = ++page;
+                    showDetailTableAnnualy(nextPage, limit, year);
+                });
+
+                $("#prevDetailAnnual").off("click").on("click", function() {
+                    const prevPage = --page;
+                    showDetailTableAnnualy(prevPage, limit, year);
+                });
+
+                $("#detailLimit").off("change").on("change", function () {
+                    const limitValue = $(this).val();
+                    showDetailTableAnnualy(page, limitValue, year);
+                });
             }
         });
     }

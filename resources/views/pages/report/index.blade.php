@@ -17,8 +17,8 @@
                                 <li class="breadcrumb-item active" aria-current="page">Report</li>
                             </ol>
                         </nav>
-                        <a class="btn btn-warning bi bi-arrows-fullscreen mt-3 mt-md-0" id="btnDetailInvoiceAnnual" data-toggle="modal"
-                            data-target="#reportTableModal" href="#"> Show Screens </a>
+                        <a class="btn btn-warning bi bi-arrows-fullscreen mt-3 mt-md-0" id="btnDetailInvoiceAnnual"
+                            data-toggle="modal" data-target="#reportTableModal" href="#"> Show Screens </a>
                         {{-- <a type="button" class="" data-bs-toggle="modal" data-bs-target="#reportTableModal"> Show Screens
                         </a> --}}
                     </div>
@@ -57,14 +57,23 @@
                                 <div class="modal-body p-0 d-flex flex-column" style="height: calc(100% - 60px);">
                                     <div class="p-3" id="yearSelectorContainer">
                                         <div class="row mb-3">
-                                            <div class="col-md-3 col-12">
-                                                <select name="year" id="yearSelect" class="form-select">
+                                            <div class="col-md-2">
+                                                <select name="year" id="yearSelect" class="form-control">
                                                     <option value="" disabled>- Pilih Tahun -</option>
                                                     <?php $currentYear = date('Y');
                                                         for ($i=0; $i < 5; $i++) {
                                                             $printYear = $currentYear--; ?>
                                                     <option value="{{ $printYear }}">{{ $printYear }}</option>
                                                     <?php } ?>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <select name="detailLimit" id="detailLimit" class="form-control">
+                                                    <option value="" disabled>Show</option>
+                                                    <option value="10">10</option>
+                                                    <option value="25">25</option>
+                                                    <option value="50">50</option>
+                                                    <option value="100">100</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -91,8 +100,21 @@
                                     </div>
                                     <div class="p-3">
                                         <nav aria-label="Page navigation">
-                                            <ul class="pagination justify-content-center mb-0" id="pagination">
-                                                <!-- Pagination akan diisi melalui JavaScript -->
+                                            <ul class="pagination justify-content-center mb-0" id="paginationDetailAnnual">
+                                                <nav>
+                                                    <ul class="pagination">
+                                                        <li class="page-item" id="prevDetailAnnual">
+                                                            <a class="page-link" href="#" aria-label="Previous">
+                                                                <span aria-hidden="true">&laquo;</span>
+                                                            </a>
+                                                        </li>
+                                                        <li class="page-item" id="nextDetailAnnual">
+                                                            <a class="page-link" href="#" aria-label="Next">
+                                                                <span aria-hidden="true">&raquo;</span>
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </nav>
                                             </ul>
                                         </nav>
                                     </div>
