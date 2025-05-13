@@ -196,15 +196,25 @@
             const detailMonth = parseInt($(this).data('month')) + 1;
             const monthIndex = $(this).data('month');
 
-            const urlDetailInvoiceMonthly = "{{ $data['url_get_invoice_detail_monthly'] }}&year=" +
-                detailYear + "&month=" + detailMonth;
-
             const monthName = MONTHS_FULL[monthIndex];
             $("#detail-month-year").text(`${monthName} ${year}`)
 
+            showMonthDetails(detailYear, monthIndex, detailMonth);
+        });
+
+        function showMonthDetails(year, monthIndex, detailMonth, page = 1, limit = 10) {
             $("#tbody-detail-invoice").html(`<tr>
                 <td class="text-center" colspan="9">Loading . . .</td>
             </tr>`);
+
+            if (page <= 1) {
+                $("#prevDetailMonthly").attr("class", "page-item disabled");
+            } else {
+                $("#prevDetailMonthly").attr("class", "page-item");
+            }
+
+            const urlDetailInvoiceMonthly = "{{ $data['url_get_invoice_detail_monthly'] }}&year=" +
+                year + "&month=" + detailMonth + "&page=" + page + "&limit=" + limit;
 
             $.ajax({
                 type: "GET",
@@ -213,32 +223,45 @@
                 success: function(response) {
                     console.info(response);
                     const data = response.data;
-                    showMonthDetails(detailYear, monthIndex, data);
+
+                    let no = 1;
+
+                    let htmlDetailInvoiceMonthly;
+
+                    data.forEach(detailInvoice => {
+                        htmlDetailInvoiceMonthly += `
+                            <tr>
+                                <td>${no++}</td>
+                                <td>${detailInvoice.work_title}</td>
+                                <td>${detailInvoice.customer_name}</td>
+                                <td>${(detailInvoice.co_no == null) ? '-' : detailInvoice.co_no}</td>
+                                <td>${detailInvoice.co_date}</td>
+                                <td>${(detailInvoice.do_no == null ) ? '-' : detailInvoice.do_no}</td>
+                                <td>${detailInvoice.do_date}</td>
+                                <td>${new Intl.NumberFormat('id-ID').format(detailInvoice.amount)}</td>
+                                <td>${detailInvoice.status}</td>
+                            </tr>
+                        `;
+                    });
+
+                    $("#tbody-detail-invoice").html(htmlDetailInvoiceMonthly);
+
+                    $("#nextDetailMonthly").off("click").on("click", function() {
+                        const nextPage = ++page;
+                        showMonthDetails(year, monthIndex, detailMonth, nextPage, limit);
+                    });
+
+                    $("#prevDetailMonthly").off("click").on("click", function() {
+                        const prevPage = --page;
+                        showMonthDetails(year, monthIndex, detailMonth, prevPage, limit);
+                    });
+
+                    $("#detailLimitMonthly").off("change").on("change", function() {
+                        const limitValue = $(this).val();
+                        showMonthDetails(year, monthIndex, detailMonth, page, limitValue);
+                    });
                 }
             });
-        });
-
-        function showMonthDetails(year, monthIndex, data) {
-            $("#tbody-detail-invoice").html("");
-
-            if (data) {
-                let no = 1;
-                data.forEach(detailInvoice => {
-                    $("#tbody-detail-invoice").append(`
-                        <tr>
-                            <td>${no++}</td>
-                            <td>${detailInvoice.work_title}</td>
-                            <td>${detailInvoice.customer_name}</td>
-                            <td>${(detailInvoice.co_no == null) ? '-' : detailInvoice.co_no}</td>
-                            <td>${detailInvoice.co_date}</td>
-                            <td>${(detailInvoice.do_no == null ) ? '-' : detailInvoice.do_no}</td>
-                            <td>${detailInvoice.do_date}</td>
-                            <td>${new Intl.NumberFormat('id-ID').format(detailInvoice.amount)}</td>
-                            <td>${detailInvoice.status}</td>
-                        </tr>
-                    `);
-                });
-            }
         }
     });
 </script>

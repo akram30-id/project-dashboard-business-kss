@@ -46,15 +46,28 @@
     </div>
 
     {{-- MODAL OF DETAIL INVOICE MONTHLY --}}
-    <div class="modal fade" id="monthDetailsModal" tabindex="-1" aria-labelledby="monthDetailsModalLabel" aria-hidden="true">
+    <div class="modal fade" id="monthDetailsModal" tabindex="-1" aria-labelledby="monthDetailsModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog" style="width: 100%; max-width: 90%;">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="monthDetailsModalLabel"><span id="detail-month-year"></span> Financial Details</h5>
+                    <h5 class="modal-title" id="monthDetailsModalLabel"><span id="detail-month-year"></span> Financial
+                        Details</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <h6 class="fw-bold mb-3">Detail Information</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-2">
+                            <select name="detailLimitMonthly" id="detailLimitMonthly" class="form-control">
+                                <option value="" disabled>Show</option>
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+                    </div>
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped table-hover">
                             <thead class="table-dark">
@@ -75,6 +88,22 @@
                             </tbody>
                         </table>
                     </div>
+                    <ul class="pagination justify-content-center mb-0" id="paginationDetailMonthly">
+                        <nav>
+                            <ul class="pagination">
+                                <li class="page-item" id="prevDetailMonthly">
+                                    <a class="page-link" href="#" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item" id="nextDetailMonthly">
+                                    <a class="page-link" href="#" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </ul>
                 </div>
             </div>
         </div>
