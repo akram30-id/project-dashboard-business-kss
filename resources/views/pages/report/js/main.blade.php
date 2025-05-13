@@ -1,4 +1,3 @@
-
 {{-- <script src="{{ asset('') }}assets/js/yearly-report.js"></script> --}}
 
 @include('pages.report.js.annual-chart')
@@ -6,6 +5,59 @@
 
 <script>
     // Data sampel (bisa diganti dengan data dari backend)
+
+    const showDetailTableAnnualy = function(page = 1, limit = 10, year = new Date().getFullYear()) {
+        $("#tableBody").html(`<tr>
+            <td class="text-center" colspan="9">Loading . . .</td>
+        </tr>`);
+
+        const urlDetailAnnual = "{{ $data['url_get_invoice_detail_annualy'] }}&year=" + year + "&page=" + page +
+            "&limit=" + limit;
+
+        $.ajax({
+            type: "GET",
+            url: urlDetailAnnual,
+            dataType: "json",
+            success: function(response) {
+                console.info(response);
+
+                const data = response.data;
+
+                let detailAnnualRows;
+
+                let no = 1;
+                data.forEach(detailAnnual => {
+                    detailAnnualRows += `
+                        <tr>
+                            <td>${no++}</td>
+                            <td>${detailAnnual.work_title}</td>
+                            <td>${detailAnnual.customer_name}</td>
+                            <td>${(detailAnnual.co_no == null) ? '-' : detailAnnual.co_no}</td>
+                            <td>${detailAnnual.co_date}</td>
+                            <td>${(detailAnnual.do_no == null) ? '-' : detailAnnual.do_no}</td>
+                            <td>${detailAnnual.do_date}</td>
+                            <td>${detailAnnual.amount}</td>
+                            <td>${detailAnnual.status}</td>
+                        </tr>
+                    `
+                });
+
+                $("#tableBody").html(detailAnnualRows);
+            }
+        });
+    }
+
+    $("#btnDetailInvoiceAnnual").on("click", function() {
+        showDetailTableAnnualy();
+    });
+
+    $("#yearSelect").on("change", function() {
+        const selecteYearDetail = $(this).val();
+
+        showDetailTableAnnualy(1, 10, selecteYearDetail);
+    });
+
+
     const reportData = [{
             no: 1,
             pekerjaan: "Sewa Kapal Alpine",

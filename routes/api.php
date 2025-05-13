@@ -22,4 +22,5 @@ Route::prefix('report_annual')->group(function () {
 
 Route::prefix('invoice_monthly_detail')->group(function () {
     Route::get('/', [ReportController::class, 'apiDetailMonthly'])->name('invoice_monthly_detail');
+    Route::get('/annual', [ReportController::class, 'apiDetailAnnualy'])->name('invoice_monthly_detail.annual');
 });

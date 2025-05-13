@@ -34,6 +34,7 @@
                             <th>Revenue</th>
                             <th>Invoice</th>
                             <th>Accrue</th>
+                            <th>####</th>
                         </tr>
                     </thead>
                     <tbody id="comparisonTableBody">

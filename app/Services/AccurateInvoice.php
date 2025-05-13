@@ -210,4 +210,72 @@ class AccurateInvoice
 
         return $dataDetail;
     }
+
+    function getDetailInvoiceAnnual($year, string $host, string $accessToken, string $dbSession, int $page = 1, $limit = 10)
+    {
+        $endpoint = '/accurate/api/sales-invoice/list.do';
+
+
+        // get list id invoice
+        $hitAPI = Http::withHeaders([
+            'X-Session-ID' => $dbSession,
+            'Authorization' => 'Bearer ' . $accessToken
+        ])->get($host . $endpoint, [
+            'filter.lastPaymentDate.op' => 'BETWEEN',
+            'filter.lastPaymentDate.val[0]' => Carbon::createFromDate($year, 1)->startOfMonth()->format('d/m/Y'),
+            'filter.lastPaymentDate.val[1]' => Carbon::createFromDate($year, 12)->endOfMonth()->format('d/m/Y'),
+            'filter.approvalStatus' => 'APPROVED',
+            'sp.pageSize' => $limit,
+            'sp.page' => $page,
+            'fields' => 'id'
+        ]);
+
+        $invoiceId = [];
+
+        if ($hitAPI->successful()) {
+            $resultHitAPI = $hitAPI->json();
+            foreach ($resultHitAPI['d'] as $valInvoice) {
+                $invoiceId[] = $valInvoice['id'];
+            }
+        }
+
+        $invoiceDetailEndpoint = '/accurate/api/sales-invoice/detail.do';
+        $dataDetail = [];
+        if (!empty($invoiceId)) {
+            foreach ($invoiceId as $id) {
+                $fullUrl = $host . $invoiceDetailEndpoint . '?id=' . $id;
+
+                // get detail invoice
+                $getDetailAPI = Http::withHeaders([
+                    'X-Session-ID' => $dbSession,
+                    'Authorization' => 'Bearer ' . $accessToken
+                ])->get($fullUrl);
+
+                if ($getDetailAPI->successful()) {
+                    $resultDetail = $getDetailAPI->json();
+
+                    $coNo = isset($resultDetail['d']['detailItem'][0]['salesOrder']['number'])
+                        ? $resultDetail['d']['detailItem'][0]['salesOrder']['number']
+                        : null;
+
+                    $doNo = isset($resultDetail['d']['detailItem'][0]['deliveryOrder']['number'])
+                        ? $resultDetail['d']['detailItem'][0]['deliveryOrder']['number']
+                        : null;
+
+                    $dataDetail[] = [
+                        'work_title' => $resultDetail['d']['description'],
+                        'customer_name' => $resultDetail['d']['customer']['name'],
+                        'co_no' => $coNo,
+                        'co_date' => $resultDetail['d']['transDate'],
+                        'do_no' => $doNo,
+                        'do_date' => $resultDetail['d']['shipDate'],
+                        'amount' => $resultDetail['d']['totalAmount'],
+                        'status' => $resultDetail['d']['statusName']
+                    ];
+                }
+            }
+        }
+
+        return $dataDetail;
+    }
 }

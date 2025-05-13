@@ -17,9 +17,10 @@
                                 <li class="breadcrumb-item active" aria-current="page">Report</li>
                             </ol>
                         </nav>
-                        <a type="button" class="btn btn-warning bi bi-arrows-fullscreen mt-3 mt-md-0"
-                            data-bs-toggle="modal" data-bs-target="#reportTableModal"> Show Screens
-                        </a>
+                        <a class="btn btn-warning bi bi-arrows-fullscreen mt-3 mt-md-0" id="btnDetailInvoiceAnnual" data-toggle="modal"
+                            data-target="#reportTableModal" href="#"> Show Screens </a>
+                        {{-- <a type="button" class="" data-bs-toggle="modal" data-bs-target="#reportTableModal"> Show Screens
+                        </a> --}}
                     </div>
 
                     <div class="dashboard-container">
@@ -54,23 +55,16 @@
                                     </div>
                                 </div>
                                 <div class="modal-body p-0 d-flex flex-column" style="height: calc(100% - 60px);">
-                                    <div class="p-3" id="monthSelectorContainer">
+                                    <div class="p-3" id="yearSelectorContainer">
                                         <div class="row mb-3">
                                             <div class="col-md-3 col-12">
-                                                <select name="month" id="monthSelect" class="form-select">
-                                                    <option value="" disabled selected>- Pilih Bulan -</option>
-                                                    <option value="januari">Januari</option>
-                                                    <option value="februari">Februari</option>
-                                                    <option value="maret">Maret</option>
-                                                    <option value="april">April</option>
-                                                    <option value="mei">Mei</option>
-                                                    <option value="juni">Juni</option>
-                                                    <option value="juli">Juli</option>
-                                                    <option value="agustus">Agustus</option>
-                                                    <option value="september">September</option>
-                                                    <option value="oktober">Oktober</option>
-                                                    <option value="november">November</option>
-                                                    <option value="desember">Desember</option>
+                                                <select name="year" id="yearSelect" class="form-select">
+                                                    <option value="" disabled>- Pilih Tahun -</option>
+                                                    <?php $currentYear = date('Y');
+                                                        for ($i=0; $i < 5; $i++) {
+                                                            $printYear = $currentYear--; ?>
+                                                    <option value="{{ $printYear }}">{{ $printYear }}</option>
+                                                    <?php } ?>
                                                 </select>
                                             </div>
                                         </div>
@@ -119,5 +113,4 @@
     @include('components.logout')
 
     @include('pages.report.js.main')
-
 @endsection
