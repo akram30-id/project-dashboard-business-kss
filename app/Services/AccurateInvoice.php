@@ -37,31 +37,31 @@ class AccurateInvoice
 
         // Hit API hanya sekali di awal untuk ambil total halaman
         if ($totalPage === null) {
-            $getPageCount = Http::withHeaders([
-                'X-Session-ID' => $dbSession,
-                'Authorization' => 'Bearer ' . $accessToken
-            ])->get($host . $endpoint, [
+
+            $paramsGetPageCount = [
                 'filter.lastPaymentDate.op' => 'BETWEEN',
                 'filter.lastPaymentDate.val[0]' => Carbon::createFromDate($year, $periode['start_month'])->startOfMonth()->format('d/m/Y'),
                 'filter.lastPaymentDate.val[1]' => Carbon::createFromDate($year, $periode['end_month'])->endOfMonth()->format('d/m/Y'),
                 // 'filter.approvalStatus' => 'APPROVED',
                 'filter.outstanding' => $this->isAccrue ? 'TRUE' : 'FALSE',
                 'sp.pageSize' => 100,
-            ]);
+            ];
+
+            $getPageCount = Http::withHeaders([
+                'X-Session-ID' => $dbSession,
+                'Authorization' => 'Bearer ' . $accessToken
+            ])->get($host . $endpoint, $paramsGetPageCount);
 
             if ($getPageCount->successful()) {
                 $resulPageCount = $getPageCount->json();
                 $totalPage = $resulPageCount['sp']['pageCount'];
             } else {
-                return $totalInvoice; // jika gagal ambil pageCount, return total 0
+                return ['error' => $getPageCount->body(), 'code' => $getPageCount->status(), 'request_url' => $host . $endpoint, 'request_body' => $paramsGetPageCount];  // jika gagal ambil pageCount
             }
         }
 
         // Ambil data dari halaman saat ini
-        $hitAPI = Http::withHeaders([
-            'X-Session-ID' => $dbSession,
-            'Authorization' => 'Bearer ' . $accessToken
-        ])->get($host . $endpoint, [
+        $paramsHitAPI = [
             'filter.lastPaymentDate.op' => 'BETWEEN',
             'filter.lastPaymentDate.val[0]' => Carbon::createFromDate($year, $periode['start_month'])->startOfMonth()->format('d/m/Y'),
             'filter.lastPaymentDate.val[1]' => Carbon::createFromDate($year, $periode['end_month'])->endOfMonth()->format('d/m/Y'),
@@ -70,13 +70,20 @@ class AccurateInvoice
             'sp.pageSize' => 100,
             'sp.page' => $page,
             'fields' => 'totalAmount'
-        ]);
+        ];
+
+        $hitAPI = Http::withHeaders([
+            'X-Session-ID' => $dbSession,
+            'Authorization' => 'Bearer ' . $accessToken
+        ])->get($host . $endpoint, $paramsHitAPI);
 
         if ($hitAPI->successful()) {
             $resultHitAPI = $hitAPI->json();
             foreach ($resultHitAPI['d'] as $valInvoice) {
                 $totalInvoice += $valInvoice['totalAmount'];
             }
+        } else {
+            return ['error' => $hitAPI->body(), 'code' => $hitAPI->status(), 'request_url' => $host . $endpoint, 'request_body' => $paramsHitAPI];  // jika gagal ambil data
         }
 
         // Jika masih ada halaman berikutnya, panggil lagi fungsi ini

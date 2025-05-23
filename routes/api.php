@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Dashboard\ReportController;
+use App\Http\Controllers\webhook\AccurateInvoiceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -23,4 +24,9 @@ Route::prefix('report_annual')->group(function () {
 Route::prefix('invoice_monthly_detail')->group(function () {
     Route::get('/', [ReportController::class, 'apiDetailMonthly'])->name('invoice_monthly_detail');
     Route::get('/annual', [ReportController::class, 'apiDetailAnnualy'])->name('invoice_monthly_detail.annual');
+});
+
+
+Route::prefix('webhook')->group(function () {
+    Route::get('/accurate_invoice_annual', [AccurateInvoiceController::class, 'apiGetDataAnnual'])->name('webhook.accurate_invoice_annual');
 });
