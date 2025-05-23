@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AccurateInvoiceWebhook;
 use App\Models\AccurateToken;
 use App\Models\WebhookLog;
+use App\Models\AccurateSession;
 use App\Services\AccurateHelperService;
 use App\Services\AccurateInvoice as ServicesAccurateInvoice;
 use Error;
@@ -26,6 +27,14 @@ class AccurateInvoiceController extends Controller
 
             $accessToken = $getDBAccessToken->access_token;
 
+            $getDBSession = AccurateSession::orderBy('id', 'desc')->first();
+
+            if (null === $getDBSession) {
+                throw new Error('No session found');
+            }
+
+            $xSessionId = $getDBSession->session_id;
+
             $currentYear = date('Y');
 
             for ($i = 0; $i < 5; $i++) {
@@ -34,13 +43,13 @@ class AccurateInvoiceController extends Controller
 
             foreach ($listYear as $year) {
 
-                $listAnnual = $this->listAnnual($year, $accessToken);
+                $listAnnual = $this->listAnnual($year, $accessToken, $xSessionId);
 
                 if (isset($listAnnual['error'])) {
                     throw new Error($listAnnual['error'], $listAnnual['code']);
                 }
 
-                $saveToDB = $this->saveListAnnual($listAnnual, $year);
+                $saveToDB = $this->saveListAnnual($listAnnual, $year, $xSessionId, $accessToken);
 
                 if (isset($saveToDB['error'])) {
                     throw new Error($saveToDB['error'], $saveToDB['code']);
@@ -122,7 +131,7 @@ class AccurateInvoiceController extends Controller
         return $data;
     }
 
-    public function saveListAnnual($data, $year)
+    public function saveListAnnual($data, $year, $xSessionId, $accessToken)
     {
         DB::beginTransaction();
 
@@ -141,6 +150,18 @@ class AccurateInvoiceController extends Controller
             );
 
             DB::commit();
+
+            $this->saveWebhookLog([
+                'webhook_id' => $webhookId,
+                'request_url' => 'https://api.accurate.id/webhook/accurate_invoice_annual',
+                'request_body' => json_encode($invoiceData),
+                'request_header' => json_encode([
+                    'X-Session-ID' => $xSessionId,
+                    'Authorization' => 'Bearer ' . $accessToken
+                ]),
+                'response_body' => json_encode($saveToDB),
+                'status_code' => 200
+            ]);
 
             return $saveToDB;
         } catch (\Exception $e) {
