@@ -33,7 +33,7 @@
                             <th>Month</th>
                             <th>Revenue</th>
                             <th>Invoice</th>
-                            <th>Accrue</th>
+                            <th>Unbilled</th>
                             <th>#####</th>
                         </tr>
                     </thead>
