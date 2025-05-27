@@ -9,16 +9,7 @@
         <div class="mx-auto">
             <div class="year-pills" id="yearPills">
                 @foreach ($data['list_year'] as $year)
-                    @if ($year == date('Y'))
-                        @php
-                            $isActive = 'active';
-                        @endphp
-                    @else
-                        @php
-                            $isActive = '';
-                        @endphp
-                    @endif
-                    <button class="year-pill {{ $isActive }}"
+                    <button class="year-pill {{ $year == date('Y') ? 'active' : '' }}"
                         data-year="{{ $year }}" id="year{{ $year }}">{{ $year }}</button>
                 @endforeach
             </div>
@@ -41,3 +32,17 @@
         </div>
     </div>
 </div>
+
+<script>
+    $(".year-pill").click(function() {
+        const year = $(this).data("year");
+
+        if (year == {{ date('Y') }}) {
+            // $(".year-pill").removeClass("active");
+            $(this).addClass("active");
+        } else {
+            $(".year-pill").removeClass("active");
+            $(this).addClass("active");
+        }
+    });
+</script>
