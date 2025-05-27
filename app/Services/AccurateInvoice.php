@@ -285,4 +285,97 @@ class AccurateInvoice
 
         return $dataDetail;
     }
+
+    function getTotalSalesInvoice(string $host, string $accessToken, string $dbSession, bool $isAnnual = true, int $page = 1, $totalPage = null, int $totalSalesAmount = 0, $year = null) //: int
+    {
+
+        if ($year == null) {
+            $year = date('Y');
+        }
+
+        $periode = [];
+
+        if ($isAnnual == true) {
+            $periode['start_month'] = 1;
+            $periode['end_month'] = 12;
+        } else {
+            $periode['start_month'] = date('n');
+            $periode['end_month'] = date('n');
+        }
+
+        $endpoint = '/accurate/api/sales-invoice/list.do';
+
+        $ids = [];
+
+        // Hit API hanya sekali di awal untuk ambil total halaman
+        if ($totalPage === null) {
+
+            $paramsGetPageCount = [
+                'filter.lastPaymentDate.op' => 'BETWEEN',
+                'filter.lastPaymentDate.val[0]' => Carbon::createFromDate($year, $periode['start_month'])->startOfMonth()->format('d/m/Y'),
+                'filter.lastPaymentDate.val[1]' => Carbon::createFromDate($year, $periode['end_month'])->endOfMonth()->format('d/m/Y'),
+                'filter.approvalStatus' => 'APPROVED',
+                'filter.outstanding' => $this->isAccrue ? 'TRUE' : 'FALSE',
+                'sp.pageSize' => 100,
+            ];
+
+            $getPageCount = Http::withHeaders([
+                'X-Session-ID' => $dbSession,
+                'Authorization' => 'Bearer ' . $accessToken
+            ])->get($host . $endpoint, $paramsGetPageCount);
+
+            if ($getPageCount->successful()) {
+                $resulPageCount = $getPageCount->json();
+
+                foreach ($resulPageCount['d'] as $dataPerPage) {
+                    $ids[] = $dataPerPage['id'];
+                }
+
+                $totalPage = $resulPageCount['sp']['pageCount'];
+            } else {
+                return ['error' => $getPageCount->body(), 'code' => $getPageCount->status(), 'request_url' => $host . $endpoint, 'request_body' => $paramsGetPageCount];  // jika gagal ambil pageCount
+            }
+        }
+
+        if (!empty($ids)) {
+            foreach ($ids as $id) {
+                $salesAmountEndpoint = '/accurate/api/sales-invoice/detail.do?id=' . $id;
+
+                $hitSalesAmountAPI = Http::withHeaders([
+                    'X-Session-ID' => $dbSession,
+                    'Authorization' => 'Bearer ' . $accessToken
+                ])->get($host . $salesAmountEndpoint);
+
+                if ($hitSalesAmountAPI->successful()) {
+                    $resultHitSalesAmountAPI = $hitSalesAmountAPI->json();
+
+                    if ($this->isAccrue) {
+
+                        // ambil taxnya dulu
+                        $totalTax = 0;
+                        $taxes = $resultHitSalesAmountAPI['d']['detailTax'];
+                        if (!empty($taxes)) {
+                            foreach ($taxes as $tax) {
+                                $totalTax += $tax['taxAmount'];
+                            }
+                        }
+
+                        // total unbilled = sales + tax - total invoice
+                        $totalSalesAmount += $resultHitSalesAmountAPI['d']['salesAmount'] + $totalTax - $resultHitSalesAmountAPI['d']['totalAmount'];
+                    }
+
+                    $totalSalesAmount += $resultHitSalesAmountAPI['d']['salesAmount'];
+                } else {
+                    return ['error' => $hitSalesAmountAPI->body(), 'code' => $hitSalesAmountAPI->status(), 'request_url' => $host . $salesAmountEndpoint];  // jika gagal ambil data
+                }
+            }
+        }
+
+        // Jika masih ada halaman berikutnya, panggil lagi fungsi ini
+        if ($page < $totalPage) {
+                return $this->getTotalSalesInvoice($host, $accessToken, $dbSession, $isAnnual, $page + 1, $totalPage, $totalSalesAmount, $year);
+        }
+
+        return $totalSalesAmount;
+    }
 }

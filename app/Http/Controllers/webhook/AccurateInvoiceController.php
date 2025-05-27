@@ -80,7 +80,7 @@ class AccurateInvoiceController extends Controller
         $xSessionId = $getDBSession['session_id'];
         $host = $getDBSession['accurate_host'];
 
-        $getCurrentAnnualTotalInvoice = $invoiceService->getTotalInvoice($host, $accessToken, $xSessionId, true, 1, null, 0, $year);
+        $getCurrentAnnualTotalInvoice = $invoiceService->getTotalSalesInvoice($host, $accessToken, $xSessionId, true, 1, null, 0, $year);
 
         if (isset($getCurrentAnnualTotalInvoice['error'])) {
             $errLog = [
@@ -100,7 +100,7 @@ class AccurateInvoiceController extends Controller
             return ['error' => $getCurrentAnnualTotalInvoice['error'], 'code' => $getCurrentAnnualTotalInvoice['code'], 'webhook_id' => time()];
         }
 
-        $getCurrentAnnualTotalAccrue = $accrueService->getTotalInvoice($host, $accessToken, $xSessionId, true, 1, null, 0, $year);
+        $getCurrentAnnualTotalAccrue = $accrueService->getTotalSalesInvoice($host, $accessToken, $xSessionId, true, 1, null, 0, $year);
 
         if (isset($getCurrentAnnualTotalAccrue['error'])) {
             $errLog = [
