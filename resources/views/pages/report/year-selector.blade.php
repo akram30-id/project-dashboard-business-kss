@@ -15,7 +15,7 @@
             </div>
         </div>
 
-        <!-- Year Dropdown (for mobile/overflow) -->
+        {{-- <!-- Year Dropdown (for mobile/overflow) -->
         <div class="year-dropdown ms-auto">
             <button id="yearDropdownToggle" class="year-dropdown-toggle">
                 Select Year <i class="fas fa-chevron-down"></i>
@@ -29,7 +29,7 @@
                 <!-- Year Options (populated via JS) -->
                 <div id="yearDropdownItems"></div>
             </div>
-        </div>
+        </div> --}}
     </div>
 </div>
 
