@@ -208,7 +208,7 @@ class AccurateInvoice
                         'co_date' => $resultDetail['d']['transDate'],
                         'do_no' => $doNo,
                         'do_date' => $resultDetail['d']['shipDate'],
-                        'amount' => $resultDetail['d']['totalAmount'],
+                        'amount' => $resultDetail['d']['salesAmount'],
                         'status' => $resultDetail['d']['statusName']
                     ];
                 }
@@ -276,7 +276,7 @@ class AccurateInvoice
                         'co_date' => $resultDetail['d']['transDate'],
                         'do_no' => $doNo,
                         'do_date' => $resultDetail['d']['shipDate'],
-                        'amount' => $resultDetail['d']['totalAmount'],
+                        'amount' => $resultDetail['d']['salesAmount'],
                         'status' => $resultDetail['d']['statusName']
                     ];
                 }
