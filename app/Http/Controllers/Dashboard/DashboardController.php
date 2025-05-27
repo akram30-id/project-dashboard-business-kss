@@ -4,6 +4,7 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Models\AccurateInvoiceWebhook;
 use App\Models\Menu;
 use App\Services\AccurateHelperService;
 use App\Services\AccurateInvoice;
@@ -76,14 +77,16 @@ class DashboardController extends Controller
                 throw new Error('Failed to get db session', 401);
             }
 
-            $xSessionId = $getDBSession['session_id'];
-            $host = $getDBSession['accurate_host'];
+            $getCurrentAnnualTotalInvoice = AccurateInvoiceWebhook::where('year', date('Y'))->first();
 
-            $invoiceService = new AccurateInvoice(false);
-            $totalInvoice = $invoiceService->getTotalInvoice($host, $accessToken, $xSessionId);
+            if (empty($getCurrentAnnualTotalInvoice)) {
+                throw new Error('No data found', 404);
+            }
+
+            $data = json_decode($getCurrentAnnualTotalInvoice->data);
 
             return response([
-                'data' => $totalInvoice
+                'data' => $data->current_annual_invoice
             ], 200);
         } catch (\Error $th) {
             Log::debug('ERROR WHEN GETTING TOTAL ANNUAL INVOICE', ['throw' => $th->getMessage(), 'line' => $th->getLine()]);
@@ -110,14 +113,16 @@ class DashboardController extends Controller
                 throw new Error('Failed to get db session', 401);
             }
 
-            $xSessionId = $getDBSession['session_id'];
-            $host = $getDBSession['accurate_host'];
+            $getWebhookData = AccurateInvoiceWebhook::where('year', date('Y'))->first();
 
-            $accrueService = new AccurateInvoice(TRUE); // OUTSTANDING INVOICE
-            $totalAccrue = $accrueService->getTotalInvoice($host, $accessToken, $xSessionId);
+            if (empty($getWebhookData)) {
+                throw new Error('No data found', 404);
+            }
+
+            $data = json_decode($getWebhookData->data);
 
             return response([
-                'data' => $totalAccrue
+                'data' => $data->current_annual_accrue
             ], 200);
         } catch (\Error $th) {
             Log::debug('ERROR WHEN GETTING TOTAL ANNUAL INVOICE', ['throw' => $th->getMessage(), 'line' => $th->getLine()]);

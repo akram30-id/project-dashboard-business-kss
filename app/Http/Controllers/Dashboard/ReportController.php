@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Models\AccurateInvoiceWebhook;
 use App\Services\AccurateHelperService;
 use App\Services\AccurateInvoice;
 use App\Services\AccurateRevenue;
@@ -59,7 +60,20 @@ class ReportController extends Controller
                 throw new Error('Invalid access token', 401);
             }
 
-            $getAnnualInvoiceRevenue = $this->listAnnual($requestYear, $accessToken);
+            $getWebhookData = AccurateInvoiceWebhook::where('year', $requestYear)->first();
+
+            if (empty($getWebhookData)) {
+                throw new Error('No data found', 404);
+            }
+
+            $data = json_decode($getWebhookData->data);
+
+            $getAnnualInvoiceRevenue = [
+                'current_annual_invoice' => $data->current_annual_invoice,
+                'current_annual_revenue' => $data->current_annual_revenue,
+                'current_annual_accrue' => $data->current_annual_accrue,
+                'year' => $requestYear
+            ];
 
             return response(['data' => $getAnnualInvoiceRevenue]);
         } catch (\Throwable $th) {
