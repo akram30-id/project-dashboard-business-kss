@@ -77,7 +77,7 @@ class DashboardController extends Controller
                 throw new Error('Failed to get db session', 401);
             }
 
-            $getCurrentAnnualTotalInvoice = AccurateInvoiceWebhook::where('year', date('Y'))->first();
+            $getCurrentAnnualTotalInvoice = AccurateInvoiceWebhook::where('year', date('Y'))->orderBy('id', 'desc')->first();
 
             if (empty($getCurrentAnnualTotalInvoice)) {
                 throw new Error('No data found', 404);

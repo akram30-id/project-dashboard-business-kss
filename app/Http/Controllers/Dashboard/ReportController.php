@@ -60,7 +60,7 @@ class ReportController extends Controller
                 throw new Error('Invalid access token', 401);
             }
 
-            $getWebhookData = AccurateInvoiceWebhook::where('year', $requestYear)->first();
+            $getWebhookData = AccurateInvoiceWebhook::where('year', $requestYear)->orderBy('id', 'desc')->first();
 
             if (empty($getWebhookData)) {
                 throw new Error('No data found', 404);
